@@ -3,6 +3,14 @@
 *.log
 *.jic
 *.sof
+*.rpt
+*.done
+*.smsg
+*.summary
+*.jdi
+*.map
+*.pin
+*.sdl
 
 
 # OS generated files #
