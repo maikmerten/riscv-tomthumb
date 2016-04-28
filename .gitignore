@@ -1,6 +1,8 @@
 *~
 *.bak
 *.log
+*.jic
+*.sof
 
 
 # OS generated files #
