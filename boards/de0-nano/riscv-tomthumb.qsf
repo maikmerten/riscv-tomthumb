@@ -94,6 +94,14 @@ set_global_assignment -name EDA_TEST_BENCH_MODULE_NAME sys_wb8_tb -section_id sy
 set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
 set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
 set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
+set_global_assignment -name EDA_TEST_BENCH_FILE ../../src/vhdl/cpu/alu_tb.vhd -section_id alu_tb
+set_global_assignment -name EDA_TEST_BENCH_FILE ../../src/vhdl/cpu/decoder_tb.vhd -section_id decoder_tb
+set_global_assignment -name EDA_TEST_BENCH_FILE ../../src/vhdl/ram/ram_tb.vhd -section_id ram_tb
+set_global_assignment -name EDA_TEST_BENCH_FILE ../../src/vhdl/sys_tb.vhd -section_id sys_tb
+set_global_assignment -name EDA_TEST_BENCH_FILE ../../src/vhdl/cpu/bus_wb8_tb.vhd -section_id bus_wb8_tb
+set_global_assignment -name EDA_TEST_BENCH_FILE ../../src/vhdl/ram/bus_ram_toplevel_tb.vhd -section_id bus_ram_toplevel_tb
+set_global_assignment -name EDA_TEST_BENCH_FILE ../../src/vhdl/sys_wb8_tb.vhd -section_id sys_wb8_tb
+set_global_assignment -name SDC_FILE "riscv-tomthumb.out.sdc"
 set_global_assignment -name VHDL_FILE ../../src/vhdl/sys_wb8_tb.vhd
 set_global_assignment -name VHDL_FILE ../../src/vhdl/sys_toplevel_wb8.vhd
 set_global_assignment -name VHDL_FILE ../../src/vhdl/sys_toplevel.vhd
@@ -125,10 +133,3 @@ set_global_assignment -name VHDL_FILE ../../src/vhdl/arbiter/arbiter_wb8.vhd
 set_global_assignment -name VHDL_FILE ../../src/vhdl/arbiter/arbiter_dummy.vhd
 set_global_assignment -name VHDL_FILE ../../src/vhdl/arbiter/arbiter.vhd
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
-set_global_assignment -name EDA_TEST_BENCH_FILE ../../src/vhdl/cpu/alu_tb.vhd -section_id alu_tb
-set_global_assignment -name EDA_TEST_BENCH_FILE ../../src/vhdl/cpu/decoder_tb.vhd -section_id decoder_tb
-set_global_assignment -name EDA_TEST_BENCH_FILE ../../src/vhdl/ram/ram_tb.vhd -section_id ram_tb
-set_global_assignment -name EDA_TEST_BENCH_FILE ../../src/vhdl/sys_tb.vhd -section_id sys_tb
-set_global_assignment -name EDA_TEST_BENCH_FILE ../../src/vhdl/cpu/bus_wb8_tb.vhd -section_id bus_wb8_tb
-set_global_assignment -name EDA_TEST_BENCH_FILE ../../src/vhdl/ram/bus_ram_toplevel_tb.vhd -section_id bus_ram_toplevel_tb
-set_global_assignment -name EDA_TEST_BENCH_FILE ../../src/vhdl/sys_wb8_tb.vhd -section_id sys_wb8_tb
