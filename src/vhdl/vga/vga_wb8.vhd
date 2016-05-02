@@ -54,11 +54,12 @@ begin
 		if rising_edge(pixel_clk) then
 		
 			col_vec := std_logic_vector(to_unsigned(col, col_vec'length));
-		
-			if col < h_visible then
-				O_r <= col_vec(0);
-				O_g <= col_vec(1);
-				O_b <= col_vec(2);
+			
+			if col < h_visible and row < v_visible then
+				-- just create a colored stripe pattern for now
+				O_r <= col_vec(5);
+				O_g <= col_vec(6);
+				O_b <= col_vec(7);
 			else
 				O_r <= '0';
 				O_g <= '0';
@@ -66,6 +67,9 @@ begin
 			end if;
 
 	
+			---------------------------------------------
+			-- generate sync signals, update row and col
+			---------------------------------------------
 			col <= col + 1;	
 		
 			if col = (h_visible + h_front_porch - 1) then
