@@ -1,6 +1,5 @@
 library IEEE;
 use IEEE.std_logic_1164.ALL;
-use IEEE.NUMERIC_STD.ALL;
 
 package vga_font_init is
 

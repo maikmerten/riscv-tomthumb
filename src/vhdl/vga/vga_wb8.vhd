@@ -5,6 +5,8 @@ use IEEE.NUMERIC_STD.ALL;
 library work;
 use work.constants.all;
 use work.vga_font_init.all;
+use work.vga_text_init.all;
+use work.vga_color_init.all;
 
 entity vga_wb8 is
 	Port(
@@ -32,13 +34,18 @@ architecture Behavioral of vga_wb8 is
 	constant v_front_porch: integer := 37;
 	constant v_pulse: integer := 6;
 	constant v_back_porch: integer := 23;
+	
+	constant text_cols: integer := 50;
+	constant text_rows: integer := 37;
 
 	signal pixel_clk: std_logic := '0';
 	signal col: integer range 0 to (h_visible + h_front_porch + h_pulse + h_back_porch) := 0;
 	signal row: integer range 0 to (v_visible + v_front_porch + v_pulse + v_back_porch) := 0;
 	
 	signal ram_font: font_store_t := FONT_RAM_INIT;
-	signal font_byte: std_logic_vector(7 downto 0) := X"00";
+	signal ram_text: text_store_t := TEXT_RAM_INIT;
+	signal ram_color: color_store_t := COLOR_RAM_INIT;
+	signal font_byte, text_char, color_next, color: std_logic_vector(7 downto 0) := X"00";
 	
 begin
 
@@ -60,10 +67,12 @@ begin
 		variable font_addr: integer range 0 to 2047;
 		
 		variable font_address: std_logic_vector(10 downto 0);
-		variable font_code: std_logic_vector(7 downto 0) := X"00";
 		variable font_row: std_logic_vector(2 downto 0);
-		--variable font_byte: std_logic_vector(7 downto 0);
 		variable font_pixel: std_logic;
+		
+		variable text_col: integer range 0 to (text_cols - 1);
+		variable text_offset: integer range 0 to (text_cols * text_rows);
+		variable text_color_addr: integer range 0 to (ram_text'length - 1);
 
 		variable col_next: integer range 0 to (h_visible + h_front_porch + h_pulse + h_back_porch) := 0;
 		variable row_next: integer range 0 to (v_visible + v_front_porch + v_pulse + v_back_porch) := 0;
@@ -74,11 +83,7 @@ begin
 			row_vec := std_logic_vector(to_unsigned(row, row_vec'length));
 			
 			if col < h_visible and row < v_visible then
-				-- just create a colored stripe pattern for now
-				O_r <= col_vec(4);
-				O_g <= col_vec(5);
-				O_b <= col_vec(6);
-				
+
 				-- pick font pixel from font byte for current column
 				case col_vec(3 downto 1) is
 					when "000" =>
@@ -100,9 +105,19 @@ begin
 				end case;
 				
 				if font_pixel = '1' then
-					O_r <= '1';
-					O_g <= '1';
-					O_b <= '1';
+					O_r <= color(6);
+					O_g <= color(5);
+					O_b <= color(4);
+				else
+					O_r <= color(2);
+					O_g <= color(1);
+					O_b <= color(0);
+				end if;
+				
+				if col_vec(3 downto 0) = "1110" then
+					-- increment 2 clocks early, so there's time to fetch the
+					-- text character and then the font byte
+					text_col := text_col + 1;
 				end if;
 				
 			else
@@ -110,8 +125,15 @@ begin
 				O_r <= '0';
 				O_g <= '0';
 				O_b <= '0';
+				
+				text_col := 0;
 			end if;
-
+			
+			-- fetch char from text RAM and color from color RAM
+			text_color_addr := text_offset + text_col;
+			text_char <= ram_text(text_color_addr);
+			color_next <= ram_color(text_color_addr);
+			color <= color_next; -- delay color for one clock
 	
 			---------------------------------------------
 			-- generate sync signals, update row and col
@@ -121,6 +143,11 @@ begin
 		
 			if col = (h_visible + h_front_porch - 1) then
 				O_hsync <= '1';
+				
+				if row_vec(3 downto 0) = "1111" then
+					-- we're in last row of text row, increment memory offset
+					text_offset := text_offset + text_cols;
+				end if;
 			end if;
 		
 			if col = (h_visible + h_front_porch + h_pulse - 1) then
@@ -144,6 +171,11 @@ begin
 				row_next := 0;
 			end if;
 			
+			if row > v_visible then
+				-- reset memory offset when in vertical blanking
+				text_offset := 0;
+			end if;
+			
 			col <= col_next;
 			row <= row_next;
 			
@@ -153,9 +185,8 @@ begin
 			col_vec := std_logic_vector(to_unsigned(col_next, col_vec'length));
 			row_vec := std_logic_vector(to_unsigned(row_next, row_vec'length));
 			
-			font_code := col_vec(11 downto 4); -- TODO: fetch from text RAM
 			font_row := row_vec(3 downto 1);
-			font_address := font_code & font_row;
+			font_address := text_char & font_row;
 			font_byte <= ram_font(to_integer(unsigned(font_address)));
 		
 		end if;
