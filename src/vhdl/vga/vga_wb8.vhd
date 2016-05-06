@@ -19,7 +19,7 @@ entity vga_wb8 is
 		ACK_O: out std_logic;
 		DAT_O: out std_logic_vector(7 downto 0);
 
-		O_vsync, O_hsync, O_r, O_g, O_b: out std_logic := '0'
+		O_vga_vsync, O_vga_hsync, O_vga_r, O_vga_g, O_vga_b: out std_logic := '0'
 	);
 end vga_wb8;
 
@@ -105,13 +105,13 @@ begin
 				end case;
 				
 				if font_pixel = '1' then
-					O_r <= color(6);
-					O_g <= color(5);
-					O_b <= color(4);
+					O_vga_r <= color(6);
+					O_vga_g <= color(5);
+					O_vga_b <= color(4);
 				else
-					O_r <= color(2);
-					O_g <= color(1);
-					O_b <= color(0);
+					O_vga_r <= color(2);
+					O_vga_g <= color(1);
+					O_vga_b <= color(0);
 				end if;
 				
 				if col_vec(3 downto 0) = "1110" then
@@ -122,9 +122,9 @@ begin
 				
 			else
 				-- not in visible region
-				O_r <= '0';
-				O_g <= '0';
-				O_b <= '0';
+				O_vga_r <= '0';
+				O_vga_g <= '0';
+				O_vga_b <= '0';
 				
 				text_col := 0;
 			end if;
@@ -142,7 +142,7 @@ begin
 			row_next := row;
 		
 			if col = (h_visible + h_front_porch - 1) then
-				O_hsync <= '1';
+				O_vga_hsync <= '1';
 				
 				if row_vec(3 downto 0) = "1111" then
 					-- we're in last row of text row, increment memory offset
@@ -151,7 +151,7 @@ begin
 			end if;
 		
 			if col = (h_visible + h_front_porch + h_pulse - 1) then
-				O_hsync <= '0';
+				O_vga_hsync <= '0';
 			end if;
 
 			if col = (h_visible + h_front_porch + h_pulse + h_back_porch - 1) then
@@ -160,11 +160,11 @@ begin
 			end if;
 			
 			if row = (v_visible + v_front_porch - 1) then
-				O_vsync <= '1';
+				O_vga_vsync <= '1';
 			end if;
 			
 			if row = (v_visible + v_front_porch + v_pulse - 1) then
-				O_vsync <= '0';
+				O_vga_vsync <= '0';
 			end if;
 			
 			if row = (v_visible + v_front_porch + v_pulse + v_back_porch - 1) then

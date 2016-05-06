@@ -13,7 +13,7 @@ use work.constants.all;
 entity vga_wb8_toplevel is
 	Port(
 		I_clk: in std_logic;
-		O_hsync, O_vsync, O_r, O_g, O_b: out std_logic
+		O_vga_hsync, O_vga_vsync, O_vga_r, O_vga_g, O_vga_b: out std_logic
 	);
 end vga_wb8_toplevel;
 
@@ -31,7 +31,7 @@ architecture Behavioral of vga_wb8_toplevel is
 			ACK_O: out std_logic;
 			DAT_O: out std_logic_vector(7 downto 0);
 
-			O_vsync, O_hsync, O_r, O_g, O_b: out std_logic := '0'
+			O_vga_vsync, O_vga_hsync, O_vga_r, O_vga_g, O_vga_b: out std_logic := '0'
 		);
 	end component;
 	
@@ -60,11 +60,11 @@ begin
 		ACK_O => vga_ack,
 		DAT_O => vga_dat,
 
-		O_vsync => O_vsync,
-		O_hsync => O_hsync,
-		O_r => O_r,
-		O_g => O_g,
-		O_b => O_b
+		O_vga_vsync => O_vga_vsync,
+		O_vga_hsync => O_vga_hsync,
+		O_vga_r => O_vga_r,
+		O_vga_g => O_vga_g,
+		O_vga_b => O_vga_b
 	);
 	
 	pll_instance: wizpll port map(

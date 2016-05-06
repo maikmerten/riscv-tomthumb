@@ -136,14 +136,14 @@ set_global_assignment -name EDA_DESIGN_INSTANCE_NAME NA -section_id vga_wb8_tb
 set_global_assignment -name EDA_TEST_BENCH_MODULE_NAME vga_wb8_tb -section_id vga_wb8_tb
 set_global_assignment -name EDA_TEST_BENCH_FILE ../../src/vhdl/vga/vga_wb8_tb.vhd -section_id vga_wb8_tb
 set_global_assignment -name VHDL_FILE ../../src/vhdl/vga/vga_wb8_toplevel.vhd
-set_location_assignment PIN_D9 -to O_vsync
-set_location_assignment PIN_E10 -to O_hsync
-set_location_assignment PIN_B11 -to O_r
-set_location_assignment PIN_D11 -to O_g
-set_location_assignment PIN_B12 -to O_b
 set_global_assignment -name VHDL_FILE ../../src/vhdl/vga/vga_font_init.vhd
 set_global_assignment -name VHDL_FILE ../../src/vhdl/vga/vga_text_init.vhd
 set_global_assignment -name VHDL_FILE ../../src/vhdl/vga/vga_color_init.vhd
+set_location_assignment PIN_B12 -to O_vga_b
+set_location_assignment PIN_D11 -to O_vga_g
+set_location_assignment PIN_E10 -to O_vga_hsync
+set_location_assignment PIN_B11 -to O_vga_r
+set_location_assignment PIN_D9 -to O_vga_vsync
 set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
 set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
 set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
