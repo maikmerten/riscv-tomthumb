@@ -142,7 +142,7 @@ begin
 			row_next := row;
 		
 			if col = (h_visible + h_front_porch - 1) then
-				O_vga_hsync <= '1';
+				O_vga_hsync <= '0';
 				
 				if row_vec(3 downto 0) = "1111" then
 					-- we're in last row of text row, increment memory offset
@@ -151,7 +151,7 @@ begin
 			end if;
 		
 			if col = (h_visible + h_front_porch + h_pulse - 1) then
-				O_vga_hsync <= '0';
+				O_vga_hsync <= '1';
 			end if;
 
 			if col = (h_visible + h_front_porch + h_pulse + h_back_porch - 1) then
@@ -159,13 +159,12 @@ begin
 				row_next := row + 1;
 			end if;
 			
-			if row = (v_visible + v_front_porch - 1) then
+			if row >= (v_visible + v_front_porch) and row < (v_visible + v_front_porch + v_pulse) then
+				O_vga_vsync <= '0';
+			else
 				O_vga_vsync <= '1';
 			end if;
 			
-			if row = (v_visible + v_front_porch + v_pulse - 1) then
-				O_vga_vsync <= '0';
-			end if;
 			
 			if row = (v_visible + v_front_porch + v_pulse + v_back_porch - 1) then
 				row_next := 0;

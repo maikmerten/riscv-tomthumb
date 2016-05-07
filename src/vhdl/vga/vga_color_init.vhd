@@ -9,7 +9,7 @@ package vga_color_init is
 		-- colors for "This is a default text"
 		X"F1",X"F1",X"F1",X"F1",   X"F1",   X"61",X"61",   X"F1",   X"F1",   X"F1",   X"F4",X"F4",X"F4",X"F4",X"F4",X"F4",X"F4",   X"F1",   X"F1",X"F1",X"F1",X"F1",
 	
-		others => X"F0"
+		others => X"0F"
 	);
 
 end package vga_color_init;
