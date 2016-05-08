@@ -21,7 +21,8 @@ architecture Behavior of vga_wb8_tb is
 			ACK_O: out std_logic;
 			DAT_O: out std_logic_vector(7 downto 0);
 
-			O_vsync, O_hsync, O_r, O_g, O_b: out std_logic := '0'
+			I_vga_clk: in std_logic := '0';
+			O_vga_vsync, O_vga_hsync, O_vga_r, O_vga_g, O_vga_b: out std_logic := '0'
 		);
 	end component;
 
@@ -44,11 +45,12 @@ begin
 		ACK_O => vga_ack,
 		DAT_O => vga_dat,
 
-		O_vsync => vga_vsync,
-		O_hsync => vga_hsync,
-		O_r => vga_r,
-		O_g => vga_g,
-		O_b => vga_b
+		I_vga_clk => I_clk,
+		O_vga_vsync => vga_vsync,
+		O_vga_hsync => vga_hsync,
+		O_vga_r => vga_r,
+		O_vga_g => vga_g,
+		O_vga_b => vga_b
 	);
 
 	proc_clock: process

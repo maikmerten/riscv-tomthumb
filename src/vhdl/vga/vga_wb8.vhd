@@ -19,26 +19,26 @@ entity vga_wb8 is
 		ACK_O: out std_logic;
 		DAT_O: out std_logic_vector(7 downto 0);
 
+		I_vga_clk: in std_logic := '0';
 		O_vga_vsync, O_vga_hsync, O_vga_r, O_vga_g, O_vga_b: out std_logic := '0'
 	);
 end vga_wb8;
 
 
 architecture Behavioral of vga_wb8 is
-	--	timings for 800x600, 72 Hz, 50 MHz pixel clock
-	constant h_visible: integer := 800;
-	constant h_front_porch: integer := 56;
-	constant h_pulse: integer := 120;
-	constant h_back_porch: integer := 64;
-	constant v_visible: integer := 600;
-	constant v_front_porch: integer := 37;
-	constant v_pulse: integer := 6;
-	constant v_back_porch: integer := 23;
-	
-	constant text_cols: integer := 50;
-	constant text_rows: integer := 37;
+	--	timings for 640x489, 60 Hz, 25.175 MHz pixel clock
+	constant h_visible: integer := 640;
+	constant h_front_porch: integer := 16;
+	constant h_pulse: integer := 96;
+	constant h_back_porch: integer := 48;
+	constant v_visible: integer := 480																												;
+	constant v_front_porch: integer := 10;
+	constant v_pulse: integer := 2;
+	constant v_back_porch: integer := 33;
 
-	signal pixel_clk: std_logic := '0';
+	constant text_cols: integer := 40;
+	constant text_rows: integer := 30;
+
 	signal col: integer range 0 to (h_visible + h_front_porch + h_pulse + h_back_porch) := 0;
 	signal row: integer range 0 to (v_visible + v_front_porch + v_pulse + v_back_porch) := 0;
 	
@@ -50,8 +50,6 @@ architecture Behavioral of vga_wb8 is
 begin
 
 
-	pixel_clk <= CLK_I;
-
 	ctrl_logic: process(CLK_I)
 	begin
 		if rising_edge(CLK_I) then
@@ -61,7 +59,7 @@ begin
 		end if;
 	end process;
 	
-	vga_out: process(pixel_clk)
+	vga_out: process(I_vga_clk)
 		variable col_vec: std_logic_vector(11 downto 0);
 		variable row_vec: std_logic_vector(10 downto 0);
 		variable font_addr: integer range 0 to 2047;
@@ -77,7 +75,7 @@ begin
 		variable col_next: integer range 0 to (h_visible + h_front_porch + h_pulse + h_back_porch) := 0;
 		variable row_next: integer range 0 to (v_visible + v_front_porch + v_pulse + v_back_porch) := 0;
 	begin
-		if rising_edge(pixel_clk) then
+		if rising_edge(I_vga_clk) then
 		
 			col_vec := std_logic_vector(to_unsigned(col, col_vec'length));
 			row_vec := std_logic_vector(to_unsigned(row, row_vec'length));
