@@ -9,7 +9,8 @@ entity sys_toplevel_wb8 is
 	Port(
 		I_clk: in std_logic;
 		I_reset: in std_logic := '0';
-		O_leds: out std_logic_vector(7 downto 0) := X"00"
+		O_leds: out std_logic_vector(7 downto 0) := X"00";
+		O_vga_vsync, O_vga_hsync, O_vga_r, O_vga_g, O_vga_b: out std_logic := '0'
 	);
 end sys_toplevel_wb8;
 
@@ -71,11 +72,36 @@ architecture Behavioral of sys_toplevel_wb8 is
 		);	
 	end component;
 	
+	component vga_wb8
+		Port(
+			-- naming according to Wishbone B4 spec
+			ADR_I: in std_logic_vector(31 downto 0);
+			CLK_I: in std_logic;
+			DAT_I: in std_logic_vector(7 downto 0);
+			STB_I: in std_logic;
+			WE_I: in std_logic;
+			ACK_O: out std_logic;
+			DAT_O: out std_logic_vector(7 downto 0);
+
+			I_vga_clk: in std_logic := '0';
+			O_vga_vsync, O_vga_hsync, O_vga_r, O_vga_g, O_vga_b: out std_logic := '0'
+	);	
+	
+	end component;
+	
 	
 	component wizpll
 		PORT(
-			inclk0		: IN STD_LOGIC  := '0';
-			c0		: OUT STD_LOGIC 
+			inclk0: IN STD_LOGIC := '0';
+			c0: OUT STD_LOGIC 
+		);
+	end component;
+	
+	
+	component wizpll_vga
+		PORT(
+			inclk0: IN STD_LOGIC := '0';
+			c0: OUT STD_LOGIC 
 		);
 	end component;
 	
@@ -88,7 +114,7 @@ architecture Behavioral of sys_toplevel_wb8 is
 	signal cpu_STB_O, cpu_CYC_O, cpu_WE_O: std_logic := '0';
 
 	
-	signal pll_clk: std_logic;
+	signal pll_clk, pll_vga_clk: std_logic;
 	
 	signal leds_DAT_O: std_logic_vector(7 downto 0);
 	signal leds_ACK_O: std_logic := '0';
@@ -96,6 +122,9 @@ architecture Behavioral of sys_toplevel_wb8 is
 	
 	signal ram_DAT_O: std_logic_vector(7 downto 0);
 	signal ram_ACK_O: std_logic := '0';
+	
+	signal vga_DAT_O: std_logic_vector(7 downto 0);
+	signal vga_ACK_O: std_logic := '0';
 	
 	-- unconnected dummy signals for bus arbiter
 	signal dummy1_ACK_O, dummy2_ACK_O, dummy3_ACK_O: std_logic := '0';
@@ -117,11 +146,11 @@ begin
 		ACK0_I => ram_ACK_O,
 		ACK1_I => leds_ACK_O,
 		ACK2_I => dummy2_ACK_O,
-		ACK3_I => dummy3_ACK_O,
+		ACK3_I => vga_ACK_O,
 		DAT0_I => ram_DAT_O,
 		DAT1_I => leds_DAT_O,
 		DAT2_I => dummy2_DAT_O,
-		DAT3_I => dummy3_DAT_O,
+		DAT3_I => vga_DAT_O,
 		STB_I => cpu_STB_O,
 		ACK_O => arb_ACK_O,
 		DAT_O => arb_DAT_O,
@@ -156,6 +185,23 @@ begin
 		O_leds => O_leds -- dummy_leds_O
 	);
 	
+	vga_instance: vga_wb8 port map(
+		ADR_I => cpu_ADR_O,
+		CLK_I => pll_clk,
+		DAT_I => cpu_DAT_O,
+		STB_I => arb_STB3_O,
+		WE_I => cpu_WE_O,
+		ACK_O => vga_ACK_O,
+		DAT_O => vga_DAT_O,
+		I_vga_clk => pll_vga_clk,
+		O_vga_vsync => O_vga_vsync,
+		O_vga_hsync => O_vga_hsync,
+		O_vga_r => O_vga_r,
+		O_vga_g => O_vga_g,
+		O_vga_b => O_vga_b
+	);
+	
+	
 	-- I/O device 0
 	ram_instance: ram_wb8 port map(
 		CLK_I => pll_clk,
@@ -169,10 +215,13 @@ begin
 	
 	pll_instance: wizpll port map(
 			inclk0 => I_clk,
-			c0		=> pll_clk
+			c0 => pll_clk
 	);
 
-
+	pll_vga_instance: wizpll_vga port map(
+			inclk0 => I_clk,
+			c0 => pll_vga_clk
+	);
 	
 
 end Behavioral;
