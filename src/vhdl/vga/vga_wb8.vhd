@@ -41,7 +41,7 @@ architecture Behavioral of vga_wb8 is
 
 	signal col: integer range 0 to (h_visible + h_front_porch + h_pulse + h_back_porch) := 0;
 	signal row: integer range 0 to (v_visible + v_front_porch + v_pulse + v_back_porch) := 0;
-	
+
 	signal ram_font: font_store_t := FONT_RAM_INIT;
 	signal ram_text: text_store_t := TEXT_RAM_INIT;
 	signal ram_color: color_store_t := COLOR_RAM_INIT;
@@ -51,12 +51,43 @@ begin
 
 
 	ctrl_logic: process(CLK_I)
+		variable ack: std_logic := '0';
+		variable addr: integer range 0 to 2047;
 	begin
 		if rising_edge(CLK_I) then
-		
-	
+			ack := '0';
+			addr := to_integer(unsigned(ADR_I(10 downto 0)));
 			
+			if STB_I = '1' then
+				case ADR_I(12 downto 11) is
+					when "00" =>
+						if WE_I = '1' then
+							ram_text(addr) <= DAT_I;
+						else
+							DAT_O <= ram_text(addr);
+						end if;
+					
+					when "01" =>
+						if WE_I = '1' then
+							ram_color(addr) <= DAT_I;
+						else
+							DAT_O <= ram_color(addr);
+						end if;
+					
+					when others =>
+						if WE_I = '1' then
+							ram_font(addr) <= DAT_I;
+						else
+							DAT_O <= ram_font(addr);
+						end if;
+				end case;
+				
+				ack := '1';
+			end if;
 		end if;
+		
+		ACK_O <= STB_I and ack;
+		
 	end process;
 	
 	vga_out: process(I_vga_clk)
