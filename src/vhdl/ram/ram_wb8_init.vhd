@@ -9,7 +9,7 @@ type store_t is array(0 to (2**ADDRLEN)-1) of std_logic_vector(7 downto 0);
 
 constant RAM_INIT : store_t := (
 
--- slow binary LED counter loop.s
+-- binary counter, output to LEDs and VGA: loop.s
 
 X"b3",
 X"62",
@@ -44,9 +44,17 @@ X"20",
 X"50",
 X"20",
 X"23",
-X"20",
+X"28",
 X"5e",
+X"04",
+X"23",
+X"1c",
+X"5e",
+X"06",
+X"23",
 X"00",
+X"5e",
+X"0a",
 X"93",
 X"d2",
 X"02",
@@ -69,10 +77,8 @@ X"02",
 X"fe",
 X"6f",
 X"f0",
-X"df",
+X"5f",
 X"fd",
-
-
 
 others => X"00"
 );

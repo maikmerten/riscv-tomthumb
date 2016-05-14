@@ -9,7 +9,9 @@ loop:
 	lw t0,512(x0)
 	add t0,t0,t1
 	sw t0,512(x0)
-	sw t0,0(t3) # blinky VGA
+	sw t0, 80(t3) # write to VGA (four chars)
+	sh t0,120(t3) # write to VGA (two chars)
+	sb t0,160(t3) # write to VGA (one char)
 	srli t0,t0,16 # shift to second most significant byte
 	sw t0,0(t2) # blinky LEDs
 
