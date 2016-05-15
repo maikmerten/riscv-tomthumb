@@ -26,7 +26,7 @@ end vga_wb8;
 
 
 architecture Behavioral of vga_wb8 is
-	--	timings for 640x489, 60 Hz, 25.175 MHz pixel clock
+	--	timings for 640x480, 60 Hz, 25.175 MHz pixel clock
 	constant h_visible: integer := 640;
 	constant h_front_porch: integer := 16;
 	constant h_pulse: integer := 96;
