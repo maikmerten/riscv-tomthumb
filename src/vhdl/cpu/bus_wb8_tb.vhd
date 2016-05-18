@@ -13,7 +13,7 @@ architecture Behavior of bus_wb8_tb is
 	component bus_wb8
 		Port(
 			I_en: in std_logic;
-			I_op: in std_logic_vector(2 downto 0); -- memory opcodes
+			I_op: in memops_t; -- memory opcodes
 			I_iaddr: in std_logic_vector(31 downto 0); -- instruction address, provided by PCU
 			I_daddr: in std_logic_vector(31 downto 0); -- data address, provided by ALU
 			I_data: in std_logic_vector(31 downto 0); -- data to be stored on write ops
@@ -36,7 +36,7 @@ architecture Behavior of bus_wb8_tb is
 	end component;
 
 	signal I_en: std_logic;
-	signal I_op: std_logic_vector(2 downto 0); -- memory opcodes
+	signal I_op: memops_t; -- memory opcodes
 	signal I_iaddr: std_logic_vector(31 downto 0); -- instruction address, provided by PCU
 	signal I_daddr: std_logic_vector(31 downto 0); -- data address, provided by ALU
 	signal I_data: std_logic_vector(31 downto 0); -- data to be stored on write ops

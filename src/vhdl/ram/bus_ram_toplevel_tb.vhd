@@ -15,7 +15,7 @@ architecture Behavior of bus_ram_toplevel_tb is
 			I_clk: in std_logic;
 			I_reset: in std_logic;
 			I_en: in std_logic;
-			I_op: in std_logic_vector(2 downto 0); -- memory opcodes
+			I_op: in memops_t; -- memory opcodes
 			I_iaddr: in std_logic_vector(31 downto 0); -- instruction address, provided by PCU
 			I_daddr: in std_logic_vector(31 downto 0); -- data address, provided by ALU
 			I_data: in std_logic_vector(31 downto 0); -- data to be stored on write ops
@@ -29,7 +29,7 @@ architecture Behavior of bus_ram_toplevel_tb is
 	
 	signal I_clk, I_reset, I_en, I_mem_imem, O_busy, O_clk, O_reset: std_logic := '0';
 	signal I_iaddr, I_daddr, I_data, O_data: std_logic_vector(31 downto 0) := X"00000000";
-	signal I_op: std_logic_vector(2 downto 0) := "000";
+	signal I_op: memops_t;
 
 	constant I_clk_period : time := 10 ns;
 begin

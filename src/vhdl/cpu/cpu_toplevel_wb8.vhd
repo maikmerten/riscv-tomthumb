@@ -33,7 +33,7 @@ architecture Behavioral of cpu_toplevel_wb8 is
 			I_dataS1: in std_logic_vector(XLEN-1 downto 0);
 			I_dataS2: in std_logic_vector(XLEN-1 downto 0);
 			I_reset: in std_logic := '0';
-			O_alumemop: out std_logic_vector(2 downto 0);
+			O_alumemop: out memops_t;
 			O_busy: out std_logic;
 			O_data: out std_logic_vector(XLEN-1 downto 0);
 			O_PC: out std_logic_vector(XLEN-1 downto 0)
@@ -44,7 +44,7 @@ architecture Behavioral of cpu_toplevel_wb8 is
 		Port(
 			-- wired to CPU core
 			I_en: in std_logic;
-			I_op: in std_logic_vector(2 downto 0); -- memory opcodes
+			I_op: in memops_t; -- memory opcodes
 			I_iaddr: in std_logic_vector(31 downto 0); -- instruction address, provided by PCU
 			I_daddr: in std_logic_vector(31 downto 0); -- data address, provided by ALU
 			I_data: in std_logic_vector(31 downto 0); -- data to be stored on write ops
@@ -76,7 +76,7 @@ architecture Behavioral of cpu_toplevel_wb8 is
 			I_regwrite: in std_logic;
 			I_alubusy: in std_logic;
 			I_membusy: in std_logic;
-			I_alumemop: in std_logic_vector(2 downto 0); -- from ALU
+			I_alumemop: memops_t; -- from ALU
 			-- enable signals for components
 			O_decen: out std_logic;
 			O_aluen: out std_logic;
@@ -84,7 +84,7 @@ architecture Behavioral of cpu_toplevel_wb8 is
 			O_regen: out std_logic;
 			-- op selection for devices
 			O_regop: out std_logic_vector(1 downto 0);
-			O_memop: out std_logic_vector(2 downto 0);
+			O_memop: out memops_t;
 			O_mem_imem: out std_logic -- 1: operation on instruction memory, 0: on data memory
 		);	
 	end component;
@@ -122,7 +122,7 @@ architecture Behavioral of cpu_toplevel_wb8 is
 	
 	
 	signal alu_out: std_logic_vector(XLEN-1 downto 0);
-	signal alu_memop: std_logic_vector(2 downto 0) := MEMOP_READW;
+	signal alu_memop: memops_t;
 	signal alu_busy: std_logic := '0';
 	signal alu_pc: std_logic_vector(XLEN-1 downto 0);
 	
@@ -134,7 +134,7 @@ architecture Behavioral of cpu_toplevel_wb8 is
 	signal ctrl_regen: std_logic := '0';
 	signal ctrl_regop: std_logic_vector(1 downto 0) := REGOP_READ;
 	signal ctrl_pcuop: std_logic := '0';
-	signal ctrl_memop: std_logic_vector(2 downto 0) := MEMOP_READW;
+	signal ctrl_memop: memops_t;
 	signal ctrl_mem_imem: std_logic := '0';
 	signal ctrl_reset: std_logic := '0';
 

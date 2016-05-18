@@ -10,11 +10,11 @@ entity control is
 		I_clk: in std_logic;
 		I_en: in std_logic;
 		I_reset: in std_logic;
-		I_memop: in std_logic;
+		I_memop: in std_logic; -- designates if decoded instruction is a memory op
 		I_regwrite: in std_logic;
 		I_alubusy: in std_logic;
 		I_membusy: in std_logic;
-		I_alumemop: in std_logic_vector(2 downto 0); -- from ALU
+		I_alumemop: in memops_t; -- from ALU
 		-- enable signals for components
 		O_decen: out std_logic;
 		O_aluen: out std_logic;
@@ -22,7 +22,7 @@ entity control is
 		O_regen: out std_logic;
 		-- op selection for devices
 		O_regop: out std_logic_vector(1 downto 0);
-		O_memop: out std_logic_vector(2 downto 0);
+		O_memop: out memops_t;
 		O_mem_imem: out std_logic -- 1: operation on instruction memory, 0: on data memory
 	);
 end control;

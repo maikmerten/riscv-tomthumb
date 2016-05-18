@@ -14,7 +14,7 @@ entity alu is
 		I_dataS1: in std_logic_vector(XLEN-1 downto 0);
 		I_dataS2: in std_logic_vector(XLEN-1 downto 0);
 		I_reset: in std_logic := '0';
-		O_alumemop: out std_logic_vector(2 downto 0);
+		O_alumemop: out memops_t;
 		O_busy: out std_logic := '0';
 		O_data: out std_logic_vector(XLEN-1 downto 0);
 		O_PC: out std_logic_vector(XLEN-1 downto 0)

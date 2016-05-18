@@ -117,16 +117,15 @@ constant REGOP_WRITE_MEM:	std_logic_vector(1 downto 0) := "11";
 constant PCOP_RESET: std_logic := '0';
 constant PCOP_NEWPC: std_logic := '1';
 
--- commands for MEM unit
+attribute enum_encoding : string;
 
-constant MEMOP_READB:	std_logic_vector(2 downto 0) := "000";
-constant MEMOP_READBU: 	std_logic_vector(2 downto 0) := "001";
-constant MEMOP_READH: 	std_logic_vector(2 downto 0) := "010";
-constant MEMOP_READHU: 	std_logic_vector(2 downto 0) := "011";
-constant MEMOP_READW: 	std_logic_vector(2 downto 0) := "100";
-constant MEMOP_WRITEB: 	std_logic_vector(2 downto 0) := "101";
-constant MEMOP_WRITEH:	std_logic_vector(2 downto 0) := "110";
-constant MEMOP_WRITEW:	std_logic_vector(2 downto 0) := "111";
+-- ALU operations, signalled by decode unit
+type aluops_t is (ALU_NOP, ALU_ADD, ALU_SUB, ALU_AND, ALU_OR, ALU_XOR, ALU_SLT, ALU_SLTU, ALU_SLL, ALU_SRL, ALU_SRA, ALU_OP2, ALU_CYCLE, ALU_CYCLEH, ALU_INSTR, ALU_INSTRH, ALU_BEQ, ALU_BNE, ALU_BLT, ALU_BGE, ALU_BLTU, ALU_BGEU, ALU_JAL, ALU_JALR);
+
+
+-- commands for MEM unit
+type memops_t is (MEMOP_READB, MEMOP_READBU, MEMOP_READH, MEMOP_READHU, MEMOP_READW, MEMOP_WRITEB, MEMOP_WRITEH, MEMOP_WRITEW);
+attribute enum_encoding of memops_t : type is "one-hot";
 
 
 
