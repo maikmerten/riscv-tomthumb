@@ -109,14 +109,12 @@ set_global_assignment -name VHDL_FILE ../../src/vhdl/sys_wb8_tb.vhd
 set_global_assignment -name VHDL_FILE ../../src/vhdl/sys_toplevel_wb8.vhd
 set_global_assignment -name VHDL_FILE ../../src/vhdl/arbiter/arbiter_wb8.vhd
 set_global_assignment -name VHDL_FILE ../../src/vhdl/cpu/registers.vhd
-set_global_assignment -name VHDL_FILE ../../src/vhdl/cpu/decoder_tb.vhd
 set_global_assignment -name VHDL_FILE ../../src/vhdl/cpu/decoder.vhd
 set_global_assignment -name VHDL_FILE ../../src/vhdl/cpu/cpu_toplevel_wb8.vhd
 set_global_assignment -name VHDL_FILE ../../src/vhdl/cpu/control.vhd
 set_global_assignment -name VHDL_FILE ../../src/vhdl/cpu/constants.vhd
 set_global_assignment -name VHDL_FILE ../../src/vhdl/cpu/bus_wb8_tb.vhd
 set_global_assignment -name VHDL_FILE ../../src/vhdl/cpu/bus_wb8.vhd
-set_global_assignment -name VHDL_FILE ../../src/vhdl/cpu/alu_tb.vhd
 set_global_assignment -name VHDL_FILE ../../src/vhdl/cpu/alu.vhd
 set_global_assignment -name VHDL_FILE ../../src/vhdl/leds/leds_wb8.vhd
 set_global_assignment -name VHDL_FILE ../../src/vhdl/ram/ram_wb8_init.vhd

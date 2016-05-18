@@ -10,11 +10,10 @@ entity control is
 		I_clk: in std_logic;
 		I_en: in std_logic;
 		I_reset: in std_logic;
-		I_memop: in std_logic; -- designates if decoded instruction is a memory op
 		I_regwrite: in std_logic;
 		I_alubusy: in std_logic;
 		I_membusy: in std_logic;
-		I_alumemop: in memops_t; -- from ALU
+		I_memop: in memops_t; -- from decoder
 		-- enable signals for components
 		O_decen: out std_logic;
 		O_aluen: out std_logic;
@@ -87,7 +86,7 @@ begin
 					O_memen <= '0';
 					O_regen <= '0';
 					
-					if I_memop = '1' then
+					if I_memop /= MEMOP_NOP then
 						state <= MEMORY;
 					elsif I_regwrite = '1' then
 						state <= REGWRITE;
@@ -102,7 +101,7 @@ begin
 						O_memen <= '1';
 						O_regen <= '0';
 						
-						O_memop <= I_alumemop;
+						O_memop <= I_memop;
 						
 						if I_regwrite = '1' then
 							state <= REGWRITE;
@@ -119,7 +118,7 @@ begin
 						O_regen <= '1';
 
 							
-						if I_memop = '1' then
+						if I_memop /= MEMOP_NOP then
 							O_regop <= REGOP_WRITE_MEM;
 						else
 							O_regop <= REGOP_WRITE_ALU;

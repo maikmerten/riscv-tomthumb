@@ -28,13 +28,14 @@ architecture Behavioral of cpu_toplevel_wb8 is
 		Port(
 			I_clk: in std_logic;
 			I_en: in std_logic;
-			I_fop: in std_logic_vector(7 downto 0);
 			I_imm: in std_logic_vector(XLEN-1 downto 0);
 			I_dataS1: in std_logic_vector(XLEN-1 downto 0);
 			I_dataS2: in std_logic_vector(XLEN-1 downto 0);
 			I_reset: in std_logic := '0';
-			O_alumemop: out memops_t;
-			O_busy: out std_logic;
+			I_aluop: in aluops_t;
+			I_src_op1: in op1src_t;
+			I_src_op2: in op2src_t;
+			O_busy: out std_logic := '0';
 			O_data: out std_logic_vector(XLEN-1 downto 0);
 			O_PC: out std_logic_vector(XLEN-1 downto 0)
 		);
@@ -72,11 +73,10 @@ architecture Behavioral of cpu_toplevel_wb8 is
 			I_clk: in std_logic;
 			I_en: in std_logic;
 			I_reset: in std_logic;
-			I_memop: in std_logic;
 			I_regwrite: in std_logic;
 			I_alubusy: in std_logic;
 			I_membusy: in std_logic;
-			I_alumemop: memops_t; -- from ALU
+			I_memop: in memops_t; -- from decoder
 			-- enable signals for components
 			O_decen: out std_logic;
 			O_aluen: out std_logic;
@@ -97,10 +97,12 @@ architecture Behavioral of cpu_toplevel_wb8 is
 			O_rs1: out std_logic_vector(4 downto 0);
 			O_rs2: out std_logic_vector(4 downto 0);
 			O_rd: out std_logic_vector(4 downto 0);
-			O_imm: out std_logic_vector(31 downto 0);
-			O_fop: out std_logic_vector(7 downto 0);
+			O_imm: out std_logic_vector(31 downto 0) := XLEN_ZERO;
 			O_regwrite : out std_logic;
-			O_memop: out std_logic
+			O_memop: out memops_t;
+			O_aluop: out aluops_t;
+			O_src_op1: out op1src_t;
+			O_src_op2: out op2src_t
 		);	
 	end component;
 	
@@ -138,14 +140,16 @@ architecture Behavioral of cpu_toplevel_wb8 is
 	signal ctrl_mem_imem: std_logic := '0';
 	signal ctrl_reset: std_logic := '0';
 
-	signal dec_fop: std_logic_vector(7 downto 0);	
-	signal dec_memop: std_logic := '0';
+	signal dec_memop: memops_t;
 	signal dec_rs1: std_logic_vector(4 downto 0);
 	signal dec_rs2: std_logic_vector(4 downto 0);
 	signal dec_rd: std_logic_vector(4 downto 0);
 	signal dec_regwrite: std_logic := '0';
 	signal dec_imm: std_logic_vector(XLEN-1 downto 0);
-	
+	signal dec_aluop: aluops_t;
+	signal dec_src_op1: op1src_t;
+	signal dec_src_op2: op2src_t;
+		
 	signal inv_clk: std_logic;
 	
 	signal bus_busy: std_logic := '0';
@@ -167,12 +171,13 @@ begin
 	alu_instance: alu port map(
 		I_clk => CLK_I,
 		I_en => ctrl_aluen,
-		I_fop => dec_fop,
 		I_imm => dec_imm,
 		I_reset => RST_I,
 		I_dataS1 => reg_dataS1,
 		I_dataS2 => reg_dataS2,
-		O_alumemop => alu_memop,
+		I_aluop => dec_aluop,
+		I_src_op1 => dec_src_op1,
+		I_src_op2 => dec_src_op2,
 		O_busy => alu_busy,
 		O_data => alu_out,
 		O_PC => alu_pc
@@ -208,7 +213,6 @@ begin
 		I_regwrite => dec_regwrite,
 		I_alubusy => alu_busy,
 		I_membusy => bus_busy,
-		I_alumemop => alu_memop,
 		O_decen => ctrl_decen,
 		O_aluen => ctrl_aluen,
 		O_memen => ctrl_memen,
@@ -227,9 +231,11 @@ begin
 		O_rs2 => dec_rs2,
 		O_rd => dec_rd,
 		O_imm => dec_imm,
-		O_fop => dec_fop,
 		O_regwrite => dec_regwrite,
-		O_memop => dec_memop
+		O_memop => dec_memop,
+		O_aluop => dec_aluop,
+		O_src_op1 => dec_src_op1,
+		O_src_op2 => dec_src_op2
 	);
 	
 	

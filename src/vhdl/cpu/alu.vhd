@@ -9,12 +9,13 @@ entity alu is
 	Port(
 		I_clk: in std_logic;
 		I_en: in std_logic;
-		I_fop: in std_logic_vector(7 downto 0);
 		I_imm: in std_logic_vector(XLEN-1 downto 0);
 		I_dataS1: in std_logic_vector(XLEN-1 downto 0);
 		I_dataS2: in std_logic_vector(XLEN-1 downto 0);
 		I_reset: in std_logic := '0';
-		O_alumemop: out memops_t;
+		I_aluop: in aluops_t;
+		I_src_op1: in op1src_t;
+		I_src_op2: in op2src_t;
 		O_busy: out std_logic := '0';
 		O_data: out std_logic_vector(XLEN-1 downto 0);
 		O_PC: out std_logic_vector(XLEN-1 downto 0)
@@ -22,17 +23,13 @@ entity alu is
 end alu;
 
 architecture Behavioral of alu is
-	type aluops is (ALU_NOP, ALU_ADD, ALU_SUB, ALU_AND, ALU_OR, ALU_XOR, ALU_SLT, ALU_SLTU, ALU_SLL, ALU_SRL, ALU_SRA, ALU_OP2, ALU_CYCLE, ALU_CYCLEH, ALU_INSTR, ALU_INSTRH, ALU_BEQ, ALU_BNE, ALU_BLT, ALU_BGE, ALU_BLTU, ALU_BGEU, ALU_JAL, ALU_JALR);
 	signal rdcycle: std_logic_vector(63 downto 0) := X"0000000000000000";
 	signal rdinstr: std_logic_vector(63 downto 0) := X"0000000000000000";
 	-- program counter
 	signal pc: std_logic_vector(XLEN-1 downto 0) := XLEN_ZERO;
 begin
 	process(I_clk)
-		variable aluop: aluops := ALU_NOP;
-		variable funct7: std_logic_vector(6 downto 0);
-		variable funct3: std_logic_vector(2 downto 0);
-		variable opcode: std_logic_vector(4 downto 0);
+		variable aluop: aluops_t := ALU_NOP;
 		variable newpc,pc4,pcimm,tmpval,op1,op2,sum: std_logic_vector(XLEN-1 downto 0);
 		variable shiftcnt: std_logic_vector(4 downto 0);
 		variable busy: boolean := false;
@@ -56,233 +53,28 @@ begin
 	
 		-- main business here
 		if rising_edge(I_clk) and I_en = '1' and not do_reset then
-		
-			funct7 := I_imm(11 downto 5);		
-			funct3 := I_fop(7 downto 5);
-			opcode := I_fop(4 downto 0);
 
-			op1 := I_dataS1;
-			op2 := I_imm;
-			aluop := ALU_NOP;
+			
+			case I_src_op1 is
+				when SRC_S1 => op1 := I_dataS1;
+				when SRC_PC => op1 := pc;
+			end case;
+			
+			case I_src_op2 is
+				when SRC_S2 => op2 := I_dataS2;
+				when SRC_IMM => op2 := I_imm;
+			end case;
+
+			aluop := I_aluop;
 
 			-- PC = PC + 4
 			pc4 := std_logic_vector(unsigned(pc) + 4);
 			pcimm := std_logic_vector(unsigned(pc) + unsigned(I_imm));
 			newpc := pc4;
 			
-			--------------------------------------------------------
-			-- first step: determine operands and operations for ALU
-			--------------------------------------------------------
-	
-			case opcode is
-
-				----------------			
-				-- OP_OP
-				----------------
-				when OP_OP =>
-					op2 := I_dataS2;
-								
-					case funct3 is
-
-						when FUNC_ADD_SUB =>
-							if funct7(5) = '1' then
-								-- SUB
-								aluop := ALU_SUB;
-							else
-								-- ADD
-								aluop := ALU_ADD;
-							end if;
-				
-						when FUNC_SLL =>
-							aluop := ALU_SLL;
-
-						when FUNC_SLT =>
-							aluop := ALU_SLT;
-
-						when FUNC_SLTU =>
-							aluop := ALU_SLTU;
-
-						when FUNC_XOR =>
-							aluop := ALU_XOR;
-
-						when FUNC_SRL_SRA =>
-							if funct7(5) = '1' then
-								-- SRA
-								aluop := ALU_SRA;
-							else
-								-- SRL
-								aluop := ALU_SRL;
-							end if;
-
-						when FUNC_OR =>
-							aluop := ALU_OR;
-
-						when FUNC_AND =>
-							aluop := ALU_AND;
-						
-						when others =>
-							null;
-					
-					end case;
-					
-				----------------
-				-- OP_OPIMM
-				----------------
-				
-				when OP_OPIMM =>
-				
-					case funct3 is
-				
-						when FUNC_ADDI =>
-							aluop := ALU_ADD;
-					
-						when FUNC_SLTI =>
-							aluop := ALU_SLT;
-					
-						when FUNC_SLTIU =>
-							aluop := ALU_SLTU;
-					
-						when FUNC_XORI =>
-							aluop := ALU_XOR;
-					
-						when FUNC_ORI =>
-							aluop := ALU_OR;
-					
-						when FUNC_ANDI =>
-							aluop := ALU_AND;
-					
-						when FUNC_SLLI =>
-							aluop := ALU_SLL;
-
-						when FUNC_SRLI_SRAI =>
-							if funct7(5) = '1' then
-								--SRAI
-								aluop := ALU_SRA;
-							else
-								--SRLI
-								aluop := ALU_SRL;
-							end if;
-						
-						when others =>
-							null;
-					
-					end case;
-					
-				----------------
-				-- OP_LUI
-				----------------
-				when OP_LUI =>
-					aluop := ALU_OP2; -- simply pass I_imm to O_data
-				
-				----------------
-				-- OP_AUIPC
-				----------------
-				when OP_AUIPC =>
-					op1 := pc;
-					aluop := ALU_ADD;
-
-				----------------
-				-- OP_LOAD
-				----------------				
-				
-				when OP_LOAD =>
-					aluop := ALU_ADD;
-					case funct3 is
-				
-						when FUNC_LB =>
-							O_alumemop <= MEMOP_READB;
-					
-						when FUNC_LH =>
-							O_alumemop <= MEMOP_READH;
-					
-						when FUNC_LW =>
-							O_alumemop <= MEMOP_READW;
-					
-						when FUNC_LBU =>
-							O_alumemop <= MEMOP_READBU;
-					
-						when FUNC_LHU =>
-							O_alumemop <= MEMOP_READHU;
-							
-						when others =>
-							null;
-
-					end case;
-
-				----------------
-				-- OP_STORE
-				----------------
-				
-				when OP_STORE =>
-					aluop := ALU_ADD;
-					case funct3 is
-				
-						when FUNC_SB =>
-							O_alumemop <= MEMOP_WRITEB;
-					
-						when FUNC_SH =>
-							O_alumemop <= MEMOP_WRITEH;
-
-						when FUNC_SW =>
-							O_alumemop <= MEMOP_WRITEW;
-						
-						when others =>
-							null;
-
-					end case;
-
-				----------------
-				-- OP_BRANCH
-				----------------
-				
-				when OP_BRANCH =>
-					op2 := I_dataS2;
-				
-					case funct3 is
-						when FUNC_BEQ => aluop := ALU_BEQ;
-						when FUNC_BNE => aluop := ALU_BNE;
-						when FUNC_BLT => aluop := ALU_BLT;
-						when FUNC_BGE => aluop := ALU_BGE;
-						when FUNC_BLTU => aluop := ALU_BLTU;
-						when FUNC_BGEU => aluop := ALU_BGEU;
-						when others =>	null;
-					end case;
-					
-				----------------
-				-- OP_JAL
-				----------------
-				
-				when OP_JAL => aluop := ALU_JAL;
-				
-				----------------
-				-- OP_JALR
-				----------------
-				
-				when OP_JALR => aluop := ALU_JALR;
-					
-				----------------
-				-- OP_SYSTEM
-				----------------
-				
-				when OP_SYSTEM =>
-					case I_imm(11 downto 0) is
-						when "110000000000" => aluop := ALU_CYCLE;  -- RDCYCLE
-						when "110010000000" => aluop := ALU_CYCLEH; -- RDCYCLEH
-						when "110000000001" => aluop := ALU_CYCLE;  -- RDTIME
-						when "110010000001" => aluop := ALU_CYCLEH; -- RDTIMEH
-						when "110000000010" => aluop := ALU_INSTR;  -- RDINSTRET
-						when "110010000010" => aluop := ALU_INSTRH; -- RDINSTRETH
-						when others => null;
-					end case;
-				
-			
-				when others =>
-					-- ignore unknown ops for now
-					null;
-			end case;
 			
 			-------------------------------
-			-- second step: generate output
+			-- generate output
 			-------------------------------
 			
 			eq := op1 = op2;
