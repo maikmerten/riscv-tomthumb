@@ -121,13 +121,13 @@ attribute enum_encoding : string;
 
 -- ALU operations, signalled by decode unit
 type aluops_t is (ALU_NOP, ALU_ADD, ALU_SUB, ALU_AND, ALU_OR, ALU_XOR, ALU_SLT, ALU_SLTU, ALU_SLL, ALU_SRL, ALU_SRA, ALU_OP2, ALU_CYCLE, ALU_CYCLEH, ALU_INSTR, ALU_INSTRH, ALU_BEQ, ALU_BNE, ALU_BLT, ALU_BGE, ALU_BLTU, ALU_BGEU, ALU_JAL, ALU_JALR);
---attribute enum_encoding of aluops_t : type is "one-hot";
+--attribute enum_encoding of aluops_t : type is "sequential";
 
 -- types that denote data sources for operators
 type op1src_t is (SRC_S1, SRC_PC);
---attribute enum_encoding of op1src_t : type is "one-hot";
+attribute enum_encoding of op1src_t : type is "sequential";
 type op2src_t is (SRC_S2, SRC_IMM);
---attribute enum_encoding of op2src_t : type is "one-hot";
+attribute enum_encoding of op2src_t : type is "sequential";
 
 -- commands for MEM unit
 type memops_t is (MEMOP_NOP, MEMOP_READB, MEMOP_READBU, MEMOP_READH, MEMOP_READHU, MEMOP_READW, MEMOP_WRITEB, MEMOP_WRITEH, MEMOP_WRITEW);
