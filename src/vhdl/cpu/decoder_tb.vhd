@@ -19,10 +19,12 @@ architecture Behavior of decoder_tb is
 			O_rs1: out std_logic_vector(4 downto 0);
 			O_rs2: out std_logic_vector(4 downto 0);
 			O_rd: out std_logic_vector(4 downto 0);
-			O_imm: out std_logic_vector(31 downto 0);
-			O_fop: out std_logic_vector(7 downto 0);
+			O_imm: out std_logic_vector(31 downto 0) := XLEN_ZERO;
 			O_regwrite : out std_logic;
-			O_memop: out std_logic
+			O_memop: out memops_t;
+			O_aluop: out aluops_t;
+			O_src_op1: out op1src_t;
+			O_src_op2: out op2src_t
 		);
 	end component;
 
@@ -35,9 +37,11 @@ architecture Behavior of decoder_tb is
 	signal O_rs2: std_logic_vector(4 downto 0);
 	signal O_rd: std_logic_vector(4 downto 0);
 	signal O_imm: std_logic_vector(XLEN-1 downto 0) := X"00000000";
-	signal O_fop: std_logic_vector(7 downto 0) := X"00";
 	signal O_regwrite: std_logic := '0';
-	signal O_memop: std_logic := '0';
+	signal O_memop: memops_t;
+	signal O_aluop: aluops_t;
+	signal O_src_op1: op1src_t;
+	signal O_src_op2: op2src_t;
 	
 
 begin
@@ -51,9 +55,11 @@ begin
 		O_rs2 => O_rs2,
 		O_rd => O_rd,
 		O_imm => O_imm,
-		O_fop => O_fop,
 		O_regwrite => O_regwrite,
-		O_memop => O_memop
+		O_memop => O_memop,
+		O_aluop => O_aluop,
+		O_src_op1 => O_src_op1,
+		O_src_op2 => O_src_op2
 	);
 
 	proc_clock: process
@@ -73,11 +79,12 @@ begin
 		wait until falling_edge(I_clk);
 		assert O_rs1 = R0 report "wrong rs1 decoded" severity failure;
 		assert O_rd = T1 report "wrong rd decoded" severity failure;
-		assert O_fop(4 downto 0) = OP_OPIMM report "wrong op decoded" severity failure;
-		assert O_fop(7 downto 5) = FUNC_ADDI report "wrong func decoded" severity failure;
 		assert to_integer(signed(O_imm)) = 15 report "wrong immediate decoded" severity failure;
 		assert O_regwrite = '1' report "wrong regwrite decoded" severity failure;
-		assert O_memop = '0' report "wrong memop decoded" severity failure;
+		assert O_memop = MEMOP_NOP report "wrong memop decoded" severity failure;
+		assert O_aluop = ALU_ADD report "wrong aluop decoded" severity failure;
+		assert O_src_op1 = SRC_S1 report "wrong op1 src decoded" severity failure;
+		assert O_src_op2 = SRC_IMM report "wrong op2 src decoded" severity failure;
 		
 		
 		I_instr <= X"006282b3"; -- add t0,t0,t1
@@ -85,31 +92,36 @@ begin
 		assert O_rs1 = T0 report "wrong rs1 decoded" severity failure;
 		assert O_rs2 = T1 report "wrong rs2 decoded" severity failure;
 		assert O_rd = T0 report "wrong rd decoded" severity failure;
-		assert O_fop(4 downto 0) = OP_OP report "wrong op decoded" severity failure;
-		assert O_fop(7 downto 5) = FUNC_ADD_SUB report "wrong func decoded" severity failure;
 		assert O_regwrite = '1' report "wrong regwrite decoded" severity failure;
-		assert O_memop = '0' report "wrong memop decoded" severity failure;
-		
+		assert O_memop = MEMOP_NOP report "wrong memop decoded" severity failure;
+		assert O_aluop = ALU_ADD report "wrong aluop decoded" severity failure;
+		assert O_src_op1 = SRC_S1 report "wrong op1 src decoded" severity failure;
+		assert O_src_op2 = SRC_S2 report "wrong op2 src decoded" severity failure;
+
 		
 		I_instr <= X"00502e23"; -- sw t0,28(x0)
 		wait until falling_edge(I_clk);
 		assert O_rs1 = R0 report "wrong rs1 decoded" severity failure;
 		assert O_rs2 = T0 report "wrong rs2 decoded" severity failure;
 		assert to_integer(signed(O_imm)) = 28 report "wrong immediate decoded" severity failure;
-		assert O_fop(4 downto 0) = OP_STORE report "wrong op decoded" severity failure;
-		assert O_fop(7 downto 5) = FUNC_SW report "wrong func decoded" severity failure;
 		assert O_regwrite = '0' report "wrong regwrite decoded" severity failure;
-		assert O_memop = '1' report "wrong memop decoded" severity failure;
+		assert O_memop = MEMOP_WRITEW report "wrong memop decoded" severity failure;
+		assert O_aluop = ALU_ADD report "wrong aluop decoded" severity failure;
+		assert O_src_op1 = SRC_S1 report "wrong op1 src decoded" severity failure;
+		assert O_src_op2 = SRC_IMM report "wrong op2 src decoded" severity failure;
+
 		
 		I_instr <= X"e0502023"; -- sw t0,-512(x0)
 		wait until falling_edge(I_clk);
 		assert O_rs1 = R0 report "wrong rs1 decoded" severity failure;
 		assert O_rs2 = T0 report "wrong rs2 decoded" severity failure;
 		assert to_integer(signed(O_imm)) = -512 report "wrong immediate decoded" severity failure;
-		assert O_fop(4 downto 0) = OP_STORE report "wrong op decoded" severity failure;
-		assert O_fop(7 downto 5) = FUNC_SW report "wrong func decoded" severity failure;
 		assert O_regwrite = '0' report "wrong regwrite decoded" severity failure;
-		assert O_memop = '1' report "wrong memop decoded" severity failure;
+		assert O_memop = MEMOP_WRITEW report "wrong memop decoded" severity failure;
+		assert O_aluop = ALU_ADD report "wrong aluop decoded" severity failure;
+		assert O_src_op1 = SRC_S1 report "wrong op1 src decoded" severity failure;
+		assert O_src_op2 = SRC_IMM report "wrong op2 src decoded" severity failure;
+
 		
 
 		I_instr <= X"01c02283"; -- lw t0,28(x0)
@@ -117,10 +129,11 @@ begin
 		assert O_rs1 = R0 report "wrong rs1 decoded" severity failure;
 		assert O_rd = T0 report "wrong rd decoded" severity failure;
 		assert to_integer(signed(O_imm)) = 28 report "wrong immediate decoded" severity failure;
-		assert O_fop(4 downto 0) = OP_LOAD report "wrong op decoded" severity failure;
-		assert O_fop(7 downto 5) = FUNC_LW report "wrong func decoded" severity failure;
 		assert O_regwrite = '1' report "wrong regwrite decoded" severity failure;
-		assert O_memop = '1' report "wrong memop decoded" severity failure;
+		assert O_memop = MEMOP_READW report "wrong memop decoded" severity failure;
+		assert O_aluop = ALU_ADD report "wrong aluop decoded" severity failure;
+		assert O_src_op1 = SRC_S1 report "wrong op1 src decoded" severity failure;
+		assert O_src_op2 = SRC_IMM report "wrong op2 src decoded" severity failure;
 
 
 
@@ -128,9 +141,11 @@ begin
 		wait until falling_edge(I_clk);
 		assert O_rd = R7 report "wrong rd decoded" severity failure;
 		assert to_integer(signed(O_imm)) = -16 report "wrong immediate decoded" severity failure;
-		assert O_fop(4 downto 0) = OP_JAL report "wrong op decoded" severity failure;
 		assert O_regwrite = '1' report "wrong regwrite decoded" severity failure;
-		assert O_memop = '0' report "wrong memop decoded" severity failure;
+		assert O_memop = MEMOP_NOP report "wrong memop decoded" severity failure;
+		assert O_aluop = ALU_JAL report "wrong aluop decoded" severity failure;
+		assert O_src_op1 = SRC_S1 report "wrong op1 src decoded" severity failure;
+		assert O_src_op2 = SRC_IMM report "wrong op2 src decoded" severity failure;
 		
 		
 		I_instr <= X"fec003e7"; -- jalr x7,x0,-20
@@ -138,29 +153,33 @@ begin
 		assert O_rs1 = R0 report "wrong rs1 decoded" severity failure;
 		assert O_rd = R7 report "wrong rd decoded" severity failure;
 		assert to_integer(signed(O_imm)) = -20 report "wrong immediate decoded" severity failure;
-		assert O_fop(4 downto 0) = OP_JALR report "wrong op decoded" severity failure;
-		assert O_fop(7 downto 5) = FUNC_JALR report "wrong func decoded" severity failure;
 		assert O_regwrite = '1' report "wrong regwrite decoded" severity failure;
-		assert O_memop = '0' report "wrong memop decoded" severity failure;
+		assert O_memop = MEMOP_NOP report "wrong memop decoded" severity failure;
+		assert O_aluop = ALU_JALR report "wrong aluop decoded" severity failure;
+		assert O_src_op1 = SRC_S1 report "wrong op1 src decoded" severity failure;
+		assert O_src_op2 = SRC_IMM report "wrong op2 src decoded" severity failure;
 
 		
 		I_instr <= X"f0f0f2b7"; -- lui t0,0xf0f0f
 		wait until falling_edge(I_clk);
 		assert O_rd = T0 report "wrong rd decoded" severity failure;
 		assert O_imm = X"f0f0f000" report "wrong immediate decoded" severity failure;
-		assert O_fop(4 downto 0) = OP_LUI report "wrong op decoded" severity failure;
 		assert O_regwrite = '1' report "wrong regwrite decoded" severity failure;
-		assert O_memop = '0' report "wrong memop decoded" severity failure;
+		assert O_memop = MEMOP_NOP report "wrong memop decoded" severity failure;
+		assert O_aluop = ALU_OP2 report "wrong aluop decoded" severity failure;
+		assert O_src_op2 = SRC_IMM report "wrong op2 src decoded" severity failure;
+
 		
 		I_instr <= X"fe7316e3"; -- bne t1,t2,4 (from 0x18)
 		wait until falling_edge(I_clk);
 		assert O_rs1 = T1 report "wrong rs1 decoded" severity failure;
 		assert O_rs2 = T2 report "wrong rs2 decoded" severity failure;
 		assert to_integer(signed(O_imm)) = -20 report "wrong immediate decoded" severity failure;
-		assert O_fop(4 downto 0) = OP_BRANCH report "wrong op decoded" severity failure;
-		assert O_fop(7 downto 5) = FUNC_BNE report "wrong func decoded" severity failure;
 		assert O_regwrite = '0' report "wrong regwrite decoded" severity failure;
-		assert O_memop = '0' report "wrong memop decoded" severity failure;
+		assert O_memop = MEMOP_NOP report "wrong memop decoded" severity failure;
+		assert O_aluop = ALU_BNE report "wrong aluop decoded" severity failure;
+		assert O_src_op1 = SRC_S1 report "wrong op1 src decoded" severity failure;
+		assert O_src_op2 = SRC_S2 report "wrong op2 src decoded" severity failure;
 		
 		wait for I_clk_period;		
 		assert false report "end of simulation" severity failure;
