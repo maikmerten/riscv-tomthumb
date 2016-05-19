@@ -29,7 +29,6 @@ architecture Behavioral of alu is
 	signal pc: std_logic_vector(XLEN-1 downto 0) := XLEN_ZERO;
 begin
 	process(I_clk)
-		variable aluop: aluops_t := ALU_NOP;
 		variable newpc,pc4,pcimm,tmpval,op1,op2,sum: std_logic_vector(XLEN-1 downto 0);
 		variable shiftcnt: std_logic_vector(4 downto 0);
 		variable busy: boolean := false;
@@ -41,6 +40,7 @@ begin
 
 			-- increment cycle counter each clock
 			rdcycle <= std_logic_vector(unsigned(rdcycle) + 1);
+
 			-- check for reset
 			if(I_reset = '1') then
 				do_reset := true;
@@ -50,22 +50,20 @@ begin
 			else
 				do_reset := false;
 			end if;
-		
-	
+
+			-- select sources for operands
+			op1 := I_dataS1;
+			if I_src_op1 = SRC_PC then
+				op1 := pc;
+			end if;
+			
+			op2 := I_dataS2;
+			if I_src_op2 = SRC_IMM then
+				op2 := I_imm;
+			end if;
+
 			-- main business here
 			if I_en = '1' and not do_reset then
-		
-				case I_src_op1 is
-					when SRC_S1 => op1 := I_dataS1;
-					when SRC_PC => op1 := pc;
-				end case;
-			
-				case I_src_op2 is
-					when SRC_S2 => op2 := I_dataS2;
-					when SRC_IMM => op2 := I_imm;
-				end case;
-
-				aluop := I_aluop;
 			
 				-- PC = PC + 4
 				pc4 := std_logic_vector(unsigned(pc) + 4);
@@ -73,7 +71,7 @@ begin
 				newpc := pc4;
 			
 				-------------------------------
-				-- compute and select output
+				-- ALU core operations
 				-------------------------------
 			
 				eq := op1 = op2;
@@ -81,7 +79,7 @@ begin
 				ltu := unsigned(op1) < unsigned(op2);
 				sum := std_logic_vector(unsigned(op1) + unsigned(op2));
 
-				case aluop is
+				case I_aluop is
 		
 					when ALU_ADD =>
 						O_data <= sum;
@@ -116,10 +114,10 @@ begin
 							tmpval := op1;
 							shiftcnt := op2(4 downto 0);
 						elsif shiftcnt /= "00000" then
-							case aluop is
+							case I_aluop is
 								when ALU_SLL => tmpval := tmpval(30 downto 0) & '0';
 								when others =>
-									if aluop = ALU_SRL then
+									if I_aluop = ALU_SRL then
 										sign := '0';
 									else
 										sign := tmpval(31);
@@ -198,7 +196,7 @@ begin
 					O_busy <= '1';
 				else
 					O_busy <= '0';
-					-- we processed an instruction, increase counters
+					-- we processed an instruction, increase instruction counter
 					rdinstr <= std_logic_vector(unsigned(rdinstr) + 1);
 					pc <= newpc;
 					O_pc <= newpc;
