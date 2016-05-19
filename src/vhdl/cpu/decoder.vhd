@@ -29,7 +29,6 @@ begin
 		variable funct3: std_logic_vector(2 downto 0);
 		variable funct7: std_logic_vector(6 downto 0);
 		variable imm: std_logic_vector(31 downto 0);
-		variable fop: std_logic_vector(7 downto 0);
 		variable memop: memops_t;
 		variable aluop: aluops_t;
 		variable op1: op1src_t;
