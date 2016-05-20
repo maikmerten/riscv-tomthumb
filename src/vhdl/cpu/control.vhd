@@ -20,7 +20,7 @@ entity control is
 		O_memen: out std_logic;
 		O_regen: out std_logic;
 		-- op selection for devices
-		O_regop: out std_logic_vector(1 downto 0);
+		O_regop: out regops_t;
 		O_memop: out memops_t;
 		O_mem_imem: out std_logic -- 1: operation on instruction memory, 0: on data memory
 	);

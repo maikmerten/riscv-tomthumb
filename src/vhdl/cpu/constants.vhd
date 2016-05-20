@@ -105,18 +105,6 @@ constant R30:	std_logic_vector(4 downto 0) := "11110";
 constant R31:	std_logic_vector(4 downto 0) := "11111";
 
 
--- commands for register unit
-
-constant REGOP_READ: 		std_logic_vector(1 downto 0) := "00";
-constant REGOP_WRITE_ALU:	std_logic_vector(1 downto 0) := "10";
-constant REGOP_WRITE_MEM:	std_logic_vector(1 downto 0) := "11";
-
-
--- commands for PC unit
-
-constant PCOP_RESET: std_logic := '0';
-constant PCOP_NEWPC: std_logic := '1';
-
 attribute enum_encoding : string;
 
 -- ALU operations, signalled by decode unit
@@ -133,7 +121,9 @@ attribute enum_encoding of op2src_t : type is "sequential";
 type memops_t is (MEMOP_NOP, MEMOP_READB, MEMOP_READBU, MEMOP_READH, MEMOP_READHU, MEMOP_READW, MEMOP_WRITEB, MEMOP_WRITEH, MEMOP_WRITEW);
 attribute enum_encoding of memops_t : type is "one-hot";
 
-
+-- commands for register unit
+type regops_t is (REGOP_READ, REGOP_WRITE_ALU, REGOP_WRITE_MEM);
+attribute enum_encoding of regops_t : type is "sequential";
 
 end constants;
 

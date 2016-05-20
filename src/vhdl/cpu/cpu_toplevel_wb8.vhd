@@ -83,7 +83,7 @@ architecture Behavioral of cpu_toplevel_wb8 is
 			O_memen: out std_logic;
 			O_regen: out std_logic;
 			-- op selection for devices
-			O_regop: out std_logic_vector(1 downto 0);
+			O_regop: out regops_t;
 			O_memop: out memops_t;
 			O_mem_imem: out std_logic -- 1: operation on instruction memory, 0: on data memory
 		);	
@@ -111,7 +111,7 @@ architecture Behavioral of cpu_toplevel_wb8 is
 		Port(
 			I_clk: in std_logic;
 			I_en: in std_logic;
-			I_op: in std_logic_vector(1 downto 0);
+			I_op: in regops_t;
 			I_selS1: in std_logic_vector(4 downto 0);
 			I_selS2: in std_logic_vector(4 downto 0);
 			I_selD: in std_logic_vector(4 downto 0);
@@ -134,8 +134,7 @@ architecture Behavioral of cpu_toplevel_wb8 is
 	signal ctrl_aluen: std_logic := '0';
 	signal ctrl_memen: std_logic := '0';
 	signal ctrl_regen: std_logic := '0';
-	signal ctrl_regop: std_logic_vector(1 downto 0) := REGOP_READ;
-	signal ctrl_pcuop: std_logic := '0';
+	signal ctrl_regop: regops_t;
 	signal ctrl_memop: memops_t;
 	signal ctrl_mem_imem: std_logic := '0';
 	signal ctrl_reset: std_logic := '0';

@@ -9,7 +9,7 @@ entity registers is
 	Port(
 		I_clk: in std_logic;
 		I_en: in std_logic;
-		I_op: in std_logic_vector(1 downto 0);
+		I_op: in regops_t;
 		I_selS1: in std_logic_vector(4 downto 0);
 		I_selS2: in std_logic_vector(4 downto 0);
 		I_selD: in std_logic_vector(4 downto 0);
