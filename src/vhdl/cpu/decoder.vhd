@@ -25,19 +25,17 @@ end decoder;
 architecture Behavioral of decoder is
 begin
 	process(I_clk)
-		variable opcode: std_logic_vector(4 downto 0);
-		variable funct3: std_logic_vector(2 downto 0);
-		variable funct7: std_logic_vector(6 downto 0);
-		variable imm: std_logic_vector(31 downto 0);
+		alias opcode: std_logic_vector(4 downto 0) is I_instr(6 downto 2);
+		alias funct3: std_logic_vector(2 downto 0) is I_instr(14 downto 12);
+		alias funct7: std_logic_vector(6 downto 0) is I_instr(31 downto 25);
+		alias funct12: std_logic_vector(11 downto 0) is I_instr(31 downto 20);
 		variable memop: memops_t;
 		variable aluop: aluops_t;
 		variable op1: op1src_t;
 		variable op2: op2src_t;
 	begin
 		if rising_edge(I_clk) and I_en = '1' then
-			opcode := I_instr(6 downto 2);
-			funct3 := I_instr(14 downto 12);			
-			
+
 			O_rs1 <= I_instr(19 downto 15);
 			O_rs2 <= I_instr(24 downto 20);
 			O_rd <= I_instr(11 downto 7);
@@ -48,38 +46,35 @@ begin
 				when OP_STORE =>
 					-- S-type
 					O_regwrite <= '0';
-					imm := std_logic_vector(resize(signed(I_instr(31 downto 25) & I_instr(11 downto 8) & I_instr(7)), O_imm'length));
+					O_imm <= std_logic_vector(resize(signed(I_instr(31 downto 25) & I_instr(11 downto 8) & I_instr(7)), O_imm'length));
 			
 				when OP_BRANCH =>
 					-- SB-type
 					O_regwrite <= '0';
-					imm := std_logic_vector(resize(signed(I_instr(31) & I_instr(7) & I_instr(30 downto 25) & I_instr(11 downto 8) & '0'), O_imm'length));
+					O_imm <= std_logic_vector(resize(signed(I_instr(31) & I_instr(7) & I_instr(30 downto 25) & I_instr(11 downto 8) & '0'), O_imm'length));
 			
 				when OP_LUI | OP_AUIPC =>
 					-- U-type
-					imm := std_logic_vector(I_instr(31 downto 12) & X"000");
+					O_imm <= std_logic_vector(I_instr(31 downto 12) & X"000");
 					
 				when OP_JAL =>
 					-- UJ-type
-					imm := std_logic_vector(resize(signed(I_instr(31) & I_instr(19 downto 12) & I_instr(20) & I_instr(30 downto 25) & I_instr(24 downto 21) & '0'), O_imm'length));
+					O_imm <= std_logic_vector(resize(signed(I_instr(31) & I_instr(19 downto 12) & I_instr(20) & I_instr(30 downto 25) & I_instr(24 downto 21) & '0'), O_imm'length));
 
 				when others =>
 					-- I-type and R-type
 					-- for R-type: func7 is in bits 11 downto 5 of immediate
-					imm := std_logic_vector(resize(signed(I_instr(31 downto 20)), O_imm'length));
+					O_imm <= std_logic_vector(resize(signed(I_instr(31 downto 20)), O_imm'length));
 			end case;
 			
-			O_imm <= imm;
-		
-			funct7 := imm(11 downto 5);		
 
+			--------------------------------------------------------
+			-- determine operands and operations for ALU
+			--------------------------------------------------------
 			op1 := SRC_S1;
 			op2 := SRC_IMM;
 			aluop := ALU_NOP;
 			memop := MEMOP_NOP;
-			--------------------------------------------------------
-			-- determine operands and operations for ALU
-			--------------------------------------------------------
 	
 			case opcode is
 
@@ -272,7 +267,7 @@ begin
 				----------------
 				
 				when OP_SYSTEM =>
-					case imm(11 downto 0) is
+					case funct12 is
 						when "110000000000" => aluop := ALU_CYCLE;  -- RDCYCLE
 						when "110010000000" => aluop := ALU_CYCLEH; -- RDCYCLEH
 						when "110000000001" => aluop := ALU_CYCLE;  -- RDTIME
