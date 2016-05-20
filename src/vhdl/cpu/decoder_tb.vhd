@@ -181,6 +181,25 @@ begin
 		assert O_src_op1 = SRC_S1 report "wrong op1 src decoded" severity failure;
 		assert O_src_op2 = SRC_S2 report "wrong op2 src decoded" severity failure;
 		
+		
+		I_instr <= X"c0002373"; -- rdcycle t1
+		wait until falling_edge(I_clk);
+		assert O_rs1 = R0 report "wrong rs1 decoded" severity failure;
+		assert O_rs2 = R0 report "wrong rs2 decoded" severity failure;
+		assert O_regwrite = '1' report "wrong regwrite decoded" severity failure;
+		assert O_memop = MEMOP_NOP report "wrong memop decoded" severity failure;
+		assert O_aluop = ALU_CYCLE report "wrong aluop decoded" severity failure;
+		
+		
+		I_instr <= X"c80023f3"; -- rdcycleh t1
+		wait until falling_edge(I_clk);
+		assert O_rs1 = R0 report "wrong rs1 decoded" severity failure;
+		assert O_rs2 = R0 report "wrong rs2 decoded" severity failure;
+		assert O_regwrite = '1' report "wrong regwrite decoded" severity failure;
+		assert O_memop = MEMOP_NOP report "wrong memop decoded" severity failure;
+		assert O_aluop = ALU_CYCLEH report "wrong aluop decoded" severity failure;
+
+		
 		wait for I_clk_period;		
 		assert false report "end of simulation" severity failure;
 	
