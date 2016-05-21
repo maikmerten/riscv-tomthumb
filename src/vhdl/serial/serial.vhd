@@ -3,22 +3,25 @@ use IEEE.std_logic_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 
 
-entity serial is
+entity serial_wb8 is
 	Port(
-		I_clk: in std_logic;
-		I_en: in std_logic;
-		I_addr: in std_logic_vector(31 downto 0);
-		I_data: in std_logic_vector(31 downto 0);
+		-- naming according to Wishbone B4 spec
+		ADR_I: in std_logic_vector(31 downto 0);
+		CLK_I: in std_logic;
+		DAT_I: in std_logic_vector(7 downto 0);
+		STB_I: in std_logic;
+		WE_I: in std_logic;
+		ACK_O: out std_logic;
+		DAT_O: out std_logic_vector(7 downto 0);	
+	
+		-- serial interface (receive, transmit)
 		I_rx: in std_logic;
-		I_write: in std_logic;
-		O_tx: out std_logic;
-		O_busy: out std_logic;
-		O_data: out std_logic_vector(31 downto 0)
+		O_tx: out std_logic
 	);
-end serial;
+end serial_wb8;
 
 
-architecture Behavioral of serial is
+architecture Behavioral of serial_wb8 is
 	constant clock_freq: integer := 50 * 1000000;
 	constant baud: integer := 9600;
 	constant baudclocks: integer := clock_freq/baud;
@@ -35,9 +38,8 @@ architecture Behavioral of serial is
 	signal read_ready: boolean := false;
 begin
 
-	O_busy <= '0';
 
-process(I_clk)
+	process(CLK_I)
 		variable readclkcnt: integer range 0 to baudclocks;
 		variable readbitcnt: integer range 0 to 9;
 		variable input: std_logic_vector(7 downto 0);
@@ -47,7 +49,7 @@ process(I_clk)
 		variable writebitcnt: integer range 0 to 8;
 
 	begin
-		if rising_edge(I_clk) then
+		if rising_edge(CLK_I) then
 	
 			-- reading
 			case readstate is
@@ -106,38 +108,44 @@ process(I_clk)
 			
 			
 			
-			if I_en = '1' then
-				case I_addr(3 downto 2) is
+			if STB_I = '1' then
+				case ADR_I(1 downto 0) is
 					when "00" => -- data register
-						if(I_write = '1') then
+						if(WE_I = '1') then
 							-- accept new data to write
-							writebuf <= I_data(31 downto 24);
+							writebuf <= DAT_I;
 							dowrite <= true;
 						else
 							-- deliver received data
-							O_data <= readbuf & X"000000";
+							DAT_O <= readbuf;
 							read_ready <= false;
 						end if;
 						
 					when "01" => -- receive status register
-						O_data <= X"00000000";
+						DAT_O <= X"00";
 						if read_ready then
 							-- signal non-zero when something fresh is in
 							-- the read buffer
-							O_data(24) <= '1';
+							DAT_O(0) <= '1';
 						end if;
 					
 					when "10" => -- send status register
-						O_data <= X"00000000";
+						DAT_O <= X"00";
 						if not dowrite then
 							-- signal "ready" when not sending
-							O_data(24) <= '1';
+							DAT_O(0) <= '1';
 						end if;
 				
 				
 					when others =>
 						null;
 				end case;
+
+				-- signal valid data
+				ACK_O <= '1';
+			else
+				-- signal invalid data when not selected
+				ACK_O <= '0';
 			end if;
 			
 			

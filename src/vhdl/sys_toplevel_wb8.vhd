@@ -9,7 +9,9 @@ entity sys_toplevel_wb8 is
 	Port(
 		I_clk: in std_logic;
 		I_reset: in std_logic := '0';
+		I_serial_rx: in std_logic;
 		O_leds: out std_logic_vector(7 downto 0) := X"00";
+		O_serial_tx: out std_logic;
 		O_vga_vsync, O_vga_hsync, O_vga_r, O_vga_g, O_vga_b: out std_logic := '0'
 	);
 end sys_toplevel_wb8;
@@ -72,6 +74,23 @@ architecture Behavioral of sys_toplevel_wb8 is
 		);	
 	end component;
 	
+	component serial_wb8 is
+		Port(
+			-- naming according to Wishbone B4 spec
+			ADR_I: in std_logic_vector(31 downto 0);
+			CLK_I: in std_logic;
+			DAT_I: in std_logic_vector(7 downto 0);
+			STB_I: in std_logic;
+			WE_I: in std_logic;
+			ACK_O: out std_logic;
+			DAT_O: out std_logic_vector(7 downto 0);	
+	
+			-- serial interface (receive, transmit)
+			I_rx: in std_logic;
+			O_tx: out std_logic
+	);
+	end component;
+	
 	component vga_wb8
 		Port(
 			-- naming according to Wishbone B4 spec
@@ -123,6 +142,9 @@ architecture Behavioral of sys_toplevel_wb8 is
 	signal ram_DAT_O: std_logic_vector(7 downto 0);
 	signal ram_ACK_O: std_logic := '0';
 	
+	signal serial_DAT_O: std_logic_vector(7 downto 0);
+	signal serial_ACK_O: std_logic := '0';
+	
 	signal vga_DAT_O: std_logic_vector(7 downto 0);
 	signal vga_ACK_O: std_logic := '0';
 	
@@ -145,11 +167,11 @@ begin
 		ADR_I => cpu_ADR_O,
 		ACK0_I => ram_ACK_O,
 		ACK1_I => leds_ACK_O,
-		ACK2_I => dummy2_ACK_O,
+		ACK2_I => serial_ACK_O,
 		ACK3_I => vga_ACK_O,
 		DAT0_I => ram_DAT_O,
 		DAT1_I => leds_DAT_O,
-		DAT2_I => dummy2_DAT_O,
+		DAT2_I => serial_DAT_O,
 		DAT3_I => vga_DAT_O,
 		STB_I => cpu_STB_O,
 		ACK_O => arb_ACK_O,
@@ -183,6 +205,18 @@ begin
 		DAT_O => leds_DAT_O,
 		-- control signal for onboard LEDs
 		O_leds => O_leds -- dummy_leds_O
+	);
+	
+	serial_instance: serial_wb8 port map(
+		ADR_I => cpu_ADR_O,
+		CLK_I => pll_clk,
+		DAT_I => cpu_DAT_O,
+		STB_I => arb_STB2_O,
+		WE_I => cpu_WE_O,
+		ACK_O => serial_ACK_O,
+		DAT_O => serial_DAT_O,
+		I_rx => I_serial_rx,
+		O_tx => O_serial_tx
 	);
 	
 	vga_instance: vga_wb8 port map(
