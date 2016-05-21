@@ -6,18 +6,18 @@ loop:
 
 	# loop until serial data is available
 wait_read:
-	lw t5,4(t2) # load serial status for reading
+	lb t5,1(t2) # load serial status for reading
 	beq t5,x0,wait_read
 
 	# we got data!
-	lw t0,0(t2) # read serial data
-	sw t0,0(t1) # push to leds
+	lb t0,0(t2) # read serial data
+	sb t0,0(t1) # push to leds
 
 wait_write:
-	lw t5,8(t2) # load serial status for writing
+	lb t5,2(t2) # load serial status for writing
 	beq t5,x0,wait_write
 
-	sw t0,0(t2) # write back to serial port
+	sb t0,0(t2) # write back to serial port
 
 
 	j loop

@@ -154,6 +154,4 @@ begin
 	end process;
 
 	
-	--O_tx <= I_rx;
-	
 end Behavioral;
