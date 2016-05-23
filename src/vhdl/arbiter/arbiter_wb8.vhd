@@ -2,53 +2,48 @@ library IEEE;
 use IEEE.std_logic_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 
+package arbiter_types is
+	constant ARB_DEVICES: integer := 8;
+	type arb_ACK_I_t is array(0 to ARB_DEVICES-1) of std_logic;
+	type arb_DAT_I_t is array(0 to ARB_DEVICES-1) of std_logic_vector(7 downto 0);
+	type arb_STB_O_t is array(0 to ARB_DEVICES-1) of std_logic;
+end package;
+
+
+library IEEE;
+use IEEE.std_logic_1164.ALL;
+use IEEE.NUMERIC_STD.ALL;
+use work.arbiter_types.ALL;
+
 
 entity arbiter_wb8 is
+
 	Port(
 		ADR_I: in std_logic_vector(31 downto 0);
-		ACK0_I, ACK1_I, ACK2_I, ACK3_I: in std_logic;
-		DAT0_I, DAT1_I, DAT2_I, DAT3_I: in std_logic_vector(7 downto 0);
+		ACK_I: in arb_ACK_I_t;
+		DAT_I: in arb_DAT_I_t;
 		STB_I: in std_logic := '0';
 		ACK_O: out std_logic := '0';
 		DAT_O: out std_logic_vector(7 downto 0);
-		STB0_O, STB1_O, STB2_O, STB3_O: out std_logic
+		STB_O: out arb_STB_O_t
 	);
 end arbiter_wb8;
 
 
 architecture Behavioral of arbiter_wb8 is
 begin
-	process(ADR_I, STB_I, DAT0_I, DAT1_I, DAT2_I, DAT3_I, ACK0_I, ACK1_I, ACK2_I, ACK3_I)
+	process(ADR_I, STB_I, DAT_I, ACK_I)
+		variable device: integer range 0 to ARB_DEVICES-1;
 	begin
-	
-		STB0_O <= '0';
-		STB1_O <= '0';
-		STB2_O <= '0';
-		STB3_O <= '0';
 		
-		-- most significant nibble selects device - room for 16 devices
-		case ADR_I(29 downto 28) is
-			when "00" =>
-				STB0_O <= STB_I;
-				DAT_O <= DAT0_I;
-				ACK_O <= ACK0_I;
-				
-			when "01" =>
-				STB1_O <= STB_I;
-				DAT_O <= DAT1_I;
-				ACK_O <= ACK1_I;
-					
-			when "10" =>
-				STB2_O <= STB_I;
-				DAT_O <= DAT2_I;
-				ACK_O <= ACK2_I;
-					
-			when others => -- "11" presumably
-				STB3_O <= STB_I;
-				DAT_O <= DAT3_I;
-				ACK_O <= ACK3_I;
-	
-		end case;		
+		for i in 0 to ARB_DEVICES-1 loop
+			STB_O(i) <= '0';
+		end loop;
+		
+		device := to_integer(unsigned(ADR_I(31 downto 28)));
+		STB_O(device) <= STB_I;
+		DAT_O <= DAT_I(device);
+		ACK_O <= ACK_I(device);
 
 	end process;
 end Behavioral;

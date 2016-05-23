@@ -4,6 +4,7 @@ use IEEE.NUMERIC_STD.ALL;
 
 library work;
 use work.constants.all;
+use work.arbiter_types.all;
 
 entity sys_toplevel_wb8 is
 	Port(
@@ -22,15 +23,14 @@ architecture Behavioral of sys_toplevel_wb8 is
 	component arbiter_wb8
 		Port(
 			ADR_I: in std_logic_vector(31 downto 0);
-			ACK0_I, ACK1_I, ACK2_I, ACK3_I: in std_logic;
-			DAT0_I, DAT1_I, DAT2_I, DAT3_I: in std_logic_vector(7 downto 0);
+			ACK_I: in arb_ACK_I_t;
+			DAT_I: in arb_DAT_I_t;
 			STB_I: in std_logic := '0';
 			ACK_O: out std_logic := '0';
 			DAT_O: out std_logic_vector(7 downto 0);
-			STB0_O, STB1_O, STB2_O, STB3_O: out std_logic
+			STB_O: out arb_STB_O_t
 		);
 	end component;
-
 
 	component cpu_toplevel_wb8
 		Port(
@@ -126,7 +126,9 @@ architecture Behavioral of sys_toplevel_wb8 is
 	
 	signal arb_ACK_O: std_logic := '0';
 	signal arb_DAT_O: std_logic_vector(7 downto 0) := X"00";
-	signal arb_STB0_O, arb_STB1_O, arb_STB2_O, arb_STB3_O: std_logic := '0';
+	signal arb_ACK_I: arb_ACK_I_t;
+	signal arb_DAT_I: arb_DAT_I_t;
+	signal arb_STB_O: arb_STB_O_t;
 	
 	signal cpu_DAT_O: std_logic_vector(7 downto 0);
 	signal cpu_ADR_O: std_logic_vector(XLEN-1 downto 0);
@@ -148,38 +150,24 @@ architecture Behavioral of sys_toplevel_wb8 is
 	signal vga_DAT_O: std_logic_vector(7 downto 0);
 	signal vga_ACK_O: std_logic := '0';
 	
-	-- unconnected dummy signals for bus arbiter
-	signal dummy1_ACK_O, dummy2_ACK_O, dummy3_ACK_O: std_logic := '0';
-	signal dummy1_DAT_O, dummy2_DAT_O, dummy3_DAT_O: std_logic_vector(7 downto 0) := X"00";
 	
 	signal inv_reset: std_logic := '0';
 
 begin
 
-	--O_leds <= cpu_ADR_O(29 downto 28) & arb_STB3_O & arb_STB2_O & arb_STB1_O & arb_STB0_O & cpu_STB_O & cpu_CYC_O;
-	--O_leds <= dummy_leds_O;
-	
+
 	-- reset button is inverted
 	inv_reset <= not I_reset;
 	
 
 	arbiter_instance: arbiter_wb8 port map(
 		ADR_I => cpu_ADR_O,
-		ACK0_I => ram_ACK_O,
-		ACK1_I => leds_ACK_O,
-		ACK2_I => serial_ACK_O,
-		ACK3_I => vga_ACK_O,
-		DAT0_I => ram_DAT_O,
-		DAT1_I => leds_DAT_O,
-		DAT2_I => serial_DAT_O,
-		DAT3_I => vga_DAT_O,
+		ACK_I => arb_ACK_I,
+		DAT_I => arb_DAT_I,
 		STB_I => cpu_STB_O,
 		ACK_O => arb_ACK_O,
 		DAT_O => arb_DAT_O,
-		STB0_O => arb_STB0_O,
-		STB1_O => arb_STB1_O,
-		STB2_O => arb_STB2_O,
-		STB3_O => arb_STB3_O
+		STB_O => arb_STB_O
 	);
 
 
@@ -199,10 +187,10 @@ begin
 		ADR_I => cpu_ADR_O,
 		CLK_I => pll_clk,
 		DAT_I => cpu_DAT_O,
-		STB_I => arb_STB1_O,
+		STB_I => arb_STB_O(1),
 		WE_I => cpu_WE_O,
-		ACK_O => leds_ACK_O,
-		DAT_O => leds_DAT_O,
+		ACK_O => arb_ACK_I(1),
+		DAT_O => arb_DAT_I(1),
 		-- control signal for onboard LEDs
 		O_leds => O_leds -- dummy_leds_O
 	);
@@ -211,10 +199,10 @@ begin
 		ADR_I => cpu_ADR_O,
 		CLK_I => pll_clk,
 		DAT_I => cpu_DAT_O,
-		STB_I => arb_STB2_O,
+		STB_I => arb_STB_O(2),
 		WE_I => cpu_WE_O,
-		ACK_O => serial_ACK_O,
-		DAT_O => serial_DAT_O,
+		ACK_O => arb_ACK_I(2),
+		DAT_O => arb_DAT_I(2),
 		I_rx => I_serial_rx,
 		O_tx => O_serial_tx
 	);
@@ -223,10 +211,10 @@ begin
 		ADR_I => cpu_ADR_O,
 		CLK_I => pll_clk,
 		DAT_I => cpu_DAT_O,
-		STB_I => arb_STB3_O,
+		STB_I => arb_STB_O(3),
 		WE_I => cpu_WE_O,
-		ACK_O => vga_ACK_O,
-		DAT_O => vga_DAT_O,
+		ACK_O => arb_ACK_I(3),
+		DAT_O => arb_DAT_I(3),
 		I_vga_clk => pll_vga_clk,
 		O_vga_vsync => O_vga_vsync,
 		O_vga_hsync => O_vga_hsync,
@@ -239,12 +227,12 @@ begin
 	-- I/O device 0
 	ram_instance: ram_wb8 port map(
 		CLK_I => pll_clk,
-		STB_I => arb_STB0_O,
+		STB_I => arb_STB_O(0),
 		WE_I => cpu_WE_O,
 		ADR_I => cpu_ADR_O,
 		DAT_I => cpu_DAT_O,
-		DAT_O => ram_DAT_O,
-		ACK_O => ram_ACK_O
+		DAT_O => arb_DAT_I(0),
+		ACK_O => arb_ACK_I(0)
 	);
 	
 	pll_instance: wizpll port map(
