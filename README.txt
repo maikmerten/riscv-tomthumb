@@ -82,5 +82,5 @@ LED output
 
 src/vhdl/leds
 
-The DE0-Nano board features eight LEDs, which can be controlled by the CPU by means of store instructions. The value currenty display can be read back.
+The DE0-Nano board features eight LEDs, which can be controlled by the CPU by means of store instructions. The value currenty displayed can be read back.
 
