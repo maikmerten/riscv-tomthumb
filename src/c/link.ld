@@ -91,8 +91,8 @@ SECTIONS
   /* text: Program code section */
   .text : 
   {
-    *(.text.*)
     *(.text)
+    *(.text.*)
     *(.gnu.linkonce.t.*)
   }
 
