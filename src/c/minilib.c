@@ -16,6 +16,7 @@ void printf_s(char* s) {
 	while(*s) printf_c(*(s++));
 }
 
+// implementation lifted from Clifford Wolf's PicoRV32 stdlib.c
 void printf_d(int i) {
 	char buf[16];
 	char *p = buf;
@@ -35,9 +36,39 @@ void printf_d(int i) {
 
 	// output buffer, highest digits first
 	while(p != buf) {
-		p -= 1;
-		printf_c(*p);
+		printf_c(*(--p));
 	}
+}
+
+// implementation lifted from Clifford Wolf's PicoRV32 stdlib.c
+int printf(const char *format, ...) {
+	int i;
+	va_list ap;
+
+	va_start(ap, format);
+
+	for (i = 0; format[i]; i++) {
+		if (format[i] == '%') {
+			while (format[++i]) {
+				if (format[i] == 'c') {
+					printf_c(va_arg(ap,int));
+					break;
+				}
+				if (format[i] == 's') {
+					printf_s(va_arg(ap,char*));
+					break;
+				}
+				if (format[i] == 'd') {
+					printf_d(va_arg(ap,int));
+					break;
+				}
+			}
+		} else {
+			printf_c(format[i]);
+		}
+	}
+
+	va_end(ap);
 }
 
 
