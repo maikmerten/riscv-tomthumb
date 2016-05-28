@@ -46,7 +46,7 @@ begin
 		variable edge_filter: std_logic_vector(3 downto 0);
 		
 		variable writeclkcnt: integer range 0 to baudclocks;
-		variable writebitcnt: integer range 0 to 8;
+		variable writebitcnt: integer range 0 to 10;
 
 	begin
 		if rising_edge(CLK_I) then
@@ -96,7 +96,7 @@ begin
 					if writeclkcnt = baudclocks then -- write next bit after one baud period
 						writeclkcnt := 0;
 						O_tx <= writebuf(0);
-						if writebitcnt = 8 then
+						if writebitcnt = 10 then
 							writestate <= WRITE_IDLE;
 							dowrite <= false;
 						end if;
