@@ -182,8 +182,7 @@ begin
 						O_data <= pc4;
 				
 					when ALU_JALR =>
-						newpc := sum;
-						newpc(0) := '0';
+						newpc := sum(31 downto 1) & '0';
 						O_data <= pc4;
 
 			
