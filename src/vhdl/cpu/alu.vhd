@@ -32,7 +32,6 @@ begin
 		variable newpc,pc4,pcimm,tmpval,op1,op2,sum: std_logic_vector(XLEN-1 downto 0);
 		variable shiftcnt: std_logic_vector(4 downto 0);
 		variable busy: boolean := false;
-		variable sign: std_logic := '0';
 		variable do_reset: boolean := false;
 		variable eq,lt,ltu: boolean;
 	begin
@@ -116,13 +115,8 @@ begin
 						elsif shiftcnt /= "00000" then
 							case I_aluop is
 								when ALU_SLL => tmpval := tmpval(30 downto 0) & '0';
-								when others =>
-									if I_aluop = ALU_SRL then
-										sign := '0';
-									else
-										sign := tmpval(31);
-									end if;
-									tmpval := sign & tmpval(31 downto 1);
+								when ALU_SRL => tmpval := '0' & tmpval(31 downto 1);
+								when others => tmpval := tmpval(31) & tmpval(31 downto 1);
 							end case;
 							shiftcnt := std_logic_vector(unsigned(shiftcnt) - 1);
 						end if;
