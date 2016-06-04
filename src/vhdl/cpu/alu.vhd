@@ -35,6 +35,9 @@ begin
 		variable do_reset: boolean := false;
 		variable eq,lt,ltu: boolean;
 	begin
+	
+		O_pc <= pc;
+	
 		if rising_edge(I_clk) then
 
 			-- increment cycle counter each clock
@@ -45,7 +48,6 @@ begin
 				do_reset := true;
 				busy := false;
 				pc <= XLEN_ZERO;
-				O_PC <= XLEN_ZERO;
 			else
 				do_reset := false;
 			end if;
@@ -192,7 +194,6 @@ begin
 					-- we processed an instruction, increase instruction counter
 					rdinstr <= std_logic_vector(unsigned(rdinstr) + 1);
 					pc <= newpc;
-					O_pc <= newpc;
 				end if;
 		
 			end if;
