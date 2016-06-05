@@ -36,20 +36,20 @@ begin
 		if rising_edge(I_clk) and I_en = '1' then
 
 			data := X"00000000";
-			-- by default assume read access
+			-- write unless read ;-)
 			write_enabled := (I_op /= REGOP_READ);
 
 			-- determine details of write operations
 			case I_op is
 			
 				when REGOP_WRITE_ALU =>
-					-- write to destination register, unless R0 is selected
+					-- write incoming data unless R0 is selected
 					if I_selD /= "00000" then
 						data := I_dataAlu;
 					end if;
 				
 				when REGOP_WRITE_MEM =>
-					-- write to destination register, unless R0 is selected
+					-- write incoming data unless R0 is selected
 					if I_selD /= "00000" then
 						data := I_dataMem;
 					end if;
