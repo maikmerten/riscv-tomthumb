@@ -63,7 +63,7 @@ begin
 
 				when others =>
 					-- I-type and R-type
-					-- for R-type: func7 is in bits 11 downto 5 of immediate
+					-- immediate carries no actual meaning for R-type instructions
 					O_imm <= std_logic_vector(resize(signed(I_instr(31 downto 20)), O_imm'length));
 			end case;
 			
