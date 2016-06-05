@@ -121,9 +121,7 @@ begin
 								when others => tmpval := tmpval(31) & tmpval(31 downto 1);
 							end case;
 							shiftcnt := std_logic_vector(unsigned(shiftcnt) - 1);
-						end if;
-					
-						if shiftcnt = "00000" then
+						else
 							busy := false;
 							O_data <= tmpval;
 						end if;

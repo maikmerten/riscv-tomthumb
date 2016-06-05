@@ -128,7 +128,7 @@ begin
 		I_aluop <= ALU_SLL;
 		I_src_op1 <= SRC_S1;
 		I_src_op2 <= SRC_S2;
-		wait until falling_edge(I_clk); -- a shift value of zero should be ready in one cycle
+		wait until falling_edge(O_busy);
 		assert O_data = X"0000000F" report "wrong output value" severity failure;
 		
 
