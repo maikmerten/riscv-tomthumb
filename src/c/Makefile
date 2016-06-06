@@ -5,7 +5,7 @@ LDFLAGS=-L./libtomthumb -ltomthumb -Tlink.ld
 DUMP=riscv32-unknown-elf-objdump
 COPY=riscv32-unknown-elf-objcopy
 
-all: test-minilib.bin
+all: test-libtomthumb.bin
 
 %.bin: %.elf
 	$(COPY) -O binary $< $@
