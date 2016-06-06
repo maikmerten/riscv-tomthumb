@@ -4,7 +4,7 @@
 _start:
 
 # set up stack pointer
-li sp,2048
+li sp,4096
 
 # call main function
 jal ra,main

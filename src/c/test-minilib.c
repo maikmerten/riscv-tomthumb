@@ -1,4 +1,4 @@
-#include "minilib.h"
+#include <libtomthumb.h>
 
 
 void main() {
