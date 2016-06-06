@@ -6,7 +6,7 @@ ARFLAGS=rs
 
 DUMP=riscv32-unknown-elf-objdump
 
-%.o: *.c
+%.o: %.c
 	$(CC) $(CFLAGS) -c $<
 	$(DUMP) -d $@
 
