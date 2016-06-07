@@ -1,14 +1,61 @@
 #include <stdarg.h>
+#include "libtomthumb.h"
 
 #define SERIAL_DATA   *((volatile char*)0x20000000)
 #define SERIAL_RREADY *((volatile char*)0x20000001)
 #define SERIAL_WREADY *((volatile char*)0x20000002)
 
+
+#define VGA_TEXT *((volatile char*)(0x30000000 + vga_offset))
+#define VGA_COLOR *((volatile char*)(0x30000800 + vga_offset))
+
+char vga_row, vga_column;
+int vga_offset;
+char printf_target = PRINTF_TARGET_SERIAL | PRINTF_TARGET_VGA;
+char printf_color = 0xF0;
+
+
+void set_printf_target(char target) {
+	printf_target = target;
+}
+
+void set_printf_color(char color) {
+	printf_color = color;
+}
+
 void printf_c(char c) {
-	// wait until serial interface is ready to transmit
-	while(!SERIAL_WREADY){};
-	// write character
-	SERIAL_DATA = c;
+
+	if(printf_target & PRINTF_TARGET_SERIAL) {
+		// wait until serial interface is ready to transmit
+		while(!SERIAL_WREADY){};
+		// write character
+		SERIAL_DATA = c;
+	}
+
+	if(printf_target & PRINTF_TARGET_VGA) {
+		// write to VGA
+		if(c == '\n') {
+			vga_row += 1;
+		} else if(c == '\r') {
+			vga_column = 0;
+		} else {
+			VGA_TEXT = c;
+			VGA_COLOR = 0xF0;
+			vga_column++;
+		}
+
+
+		if(vga_column >= 40) {
+			vga_column = 0;
+			vga_row += 1;
+		}
+		if(vga_row >= 30) {
+			vga_row = 0;
+		}
+
+		//vga_offset = vga_row * 40 + vga_column;
+		vga_offset = (vga_row << 5) + (vga_row << 3) + vga_column;
+	}
 }
 
 
@@ -41,7 +88,7 @@ void printf_d(int i) {
 }
 
 // implementation lifted from Clifford Wolf's PicoRV32 stdlib.c
-int printf(const char *format, ...) {
+void printf(const char *format, ...) {
 	int i;
 	va_list ap;
 
