@@ -1,5 +1,5 @@
 #!/bin/bash
-LINK="riscv32-unknown-elf-gcc -O0 -nostdlib -nostartfiles -Tlink.ld"
+LINK="riscv32-unknown-elf-gcc -march=RV32IXcustom -O0 -nostdlib -nostartfiles -Tlink.ld"
 DUMP="riscv32-unknown-elf-objdump"
 COPY="riscv32-unknown-elf-objcopy"
 
