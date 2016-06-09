@@ -7,8 +7,13 @@ constant XLEN:	integer := 32;
 constant XLEN_ZERO: std_logic_vector(XLEN-1 downto 0) := X"00000000";
 constant XLEN_ONE: std_logic_vector(XLEN-1 downto 0) := X"00000001";
 
+constant RESET_VECTOR: 		std_logic_vector(XLEN-1 downto 0) := X"00000000";
+constant INTERRUPT_VECTOR:	std_logic_vector(XLEN-1 downto 0) := X"00000010";
+
+
 -- Opcodes
 constant OP_OP: 		std_logic_vector(4 downto 0) := "01100"; -- R-type
+constant OP_CUSTOM0:	std_logic_vector(4 downto 0) := "00010"; -- R-type
 
 constant OP_JALR:		std_logic_vector(4 downto 0) := "11001"; -- I-type
 constant OP_LOAD: 	std_logic_vector(4 downto 0) := "00000"; -- I-type
@@ -108,7 +113,7 @@ constant R31:	std_logic_vector(4 downto 0) := "11111";
 attribute enum_encoding : string;
 
 -- ALU operations, signalled by decode unit
-type aluops_t is (ALU_NOP, ALU_ADD, ALU_SUB, ALU_AND, ALU_OR, ALU_XOR, ALU_SLT, ALU_SLTU, ALU_SLL, ALU_SRL, ALU_SRA, ALU_OP2, ALU_CYCLE, ALU_CYCLEH, ALU_INSTR, ALU_INSTRH, ALU_BEQ, ALU_BNE, ALU_BLT, ALU_BGE, ALU_BLTU, ALU_BGEU, ALU_JAL, ALU_JALR);
+type aluops_t is (ALU_NOP, ALU_ADD, ALU_SUB, ALU_AND, ALU_OR, ALU_XOR, ALU_SLT, ALU_SLTU, ALU_SLL, ALU_SRL, ALU_SRA, ALU_OP2, ALU_CYCLE, ALU_CYCLEH, ALU_INSTR, ALU_INSTRH, ALU_BEQ, ALU_BNE, ALU_BLT, ALU_BGE, ALU_BLTU, ALU_BGEU, ALU_JAL, ALU_JALR, ALU_RTI);
 --attribute enum_encoding of aluops_t : type is "sequential";
 
 -- types that denote data sources for operators

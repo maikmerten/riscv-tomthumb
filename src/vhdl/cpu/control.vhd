@@ -14,6 +14,8 @@ entity control is
 		I_alubusy: in std_logic;
 		I_membusy: in std_logic;
 		I_memop: in memops_t; -- from decoder
+		I_interrupt: in std_logic; -- from outside world
+		I_leave_interrupt: in boolean; -- from ALU
 		-- enable signals for components
 		O_decen: out std_logic;
 		O_aluen: out std_logic;
@@ -22,7 +24,9 @@ entity control is
 		-- op selection for devices
 		O_regop: out regops_t;
 		O_memop: out memops_t;
-		O_mem_imem: out std_logic -- 1: operation on instruction memory, 0: on data memory
+		O_mem_imem: out std_logic; -- 1: operation on instruction memory, 0: on data memory
+		-- interrupt handling
+		O_enter_interrupt: out boolean := false
 	);
 end control;
 
@@ -31,11 +35,13 @@ architecture Behavioral of control is
 	signal state: control_states := RESET;
 begin
 	process(I_clk)
+		variable in_interrupt: boolean := false;
 	begin
 		if rising_edge(I_clk) and I_en = '1' then
 		
 			O_regop <= REGOP_READ;
 			O_mem_imem <= '0';
+			O_enter_interrupt <= false;
 		
 			case state is
 				when RESET =>
@@ -44,6 +50,7 @@ begin
 					O_aluen <= '0'; -- ensure ALU is awake to see reset
 					O_memen <= '0';
 					O_regen <= '0';
+					in_interrupt := false;
 				
 					state <= FETCH;
 				
@@ -52,16 +59,26 @@ begin
 					-- they're doing in case we directly loop back from their
 					-- respective stages
 					if I_alubusy = '0' and I_membusy = '0' then
-						O_decen <= '0';
-						O_aluen <= '0';
-						O_memen <= '1';
-						O_regen <= '0';
+						if I_leave_interrupt then
+							in_interrupt := false;
+						end if;
 					
-						O_mem_imem <= '1'; -- load from instruction memory
-						O_memop <= MEMOP_READW;
+						if I_interrupt = '1' and not in_interrupt then
+							O_enter_interrupt <= true;
+							in_interrupt := true;
+						else				
+							O_decen <= '0';
+							O_aluen <= '0';
+							O_memen <= '1';
+							O_regen <= '0';
+					
+							O_mem_imem <= '1'; -- load from instruction memory
+							O_memop <= MEMOP_READW;
 				
-						state <= DECODE;
+							state <= DECODE;
+						end if;
 					end if;
+				
 				when DECODE =>
 					-- wait until memory completed fetch
 					if I_membusy = '0' then

@@ -35,9 +35,11 @@ architecture Behavioral of cpu_toplevel_wb8 is
 			I_aluop: in aluops_t;
 			I_src_op1: in op1src_t;
 			I_src_op2: in op2src_t;
+			I_enter_interrupt: in boolean := false;
 			O_busy: out std_logic := '0';
 			O_data: out std_logic_vector(XLEN-1 downto 0);
-			O_PC: out std_logic_vector(XLEN-1 downto 0)
+			O_PC: out std_logic_vector(XLEN-1 downto 0);
+			O_leave_interrupt: out boolean := false
 		);
 	end component;
 	
@@ -77,6 +79,8 @@ architecture Behavioral of cpu_toplevel_wb8 is
 			I_alubusy: in std_logic;
 			I_membusy: in std_logic;
 			I_memop: in memops_t; -- from decoder
+			I_interrupt: in std_logic; -- from outside world
+			I_leave_interrupt: in boolean; -- from ALU
 			-- enable signals for components
 			O_decen: out std_logic;
 			O_aluen: out std_logic;
@@ -85,7 +89,9 @@ architecture Behavioral of cpu_toplevel_wb8 is
 			-- op selection for devices
 			O_regop: out regops_t;
 			O_memop: out memops_t;
-			O_mem_imem: out std_logic -- 1: operation on instruction memory, 0: on data memory
+			O_mem_imem: out std_logic; -- 1: operation on instruction memory, 0: on data memory
+			-- interrupt handling
+			O_enter_interrupt: out boolean := false
 		);	
 	end component;
 	
@@ -127,6 +133,7 @@ architecture Behavioral of cpu_toplevel_wb8 is
 	signal alu_memop: memops_t;
 	signal alu_busy: std_logic := '0';
 	signal alu_pc: std_logic_vector(XLEN-1 downto 0);
+	signal alu_leave_interrupt: boolean := false;
 	
 	
 	signal ctrl_pcuen: std_logic := '0';
@@ -138,6 +145,7 @@ architecture Behavioral of cpu_toplevel_wb8 is
 	signal ctrl_memop: memops_t;
 	signal ctrl_mem_imem: std_logic := '0';
 	signal ctrl_reset: std_logic := '0';
+	signal ctrl_enter_interrupt: boolean := false;
 
 	signal dec_memop: memops_t;
 	signal dec_rs1: std_logic_vector(4 downto 0);
@@ -177,9 +185,11 @@ begin
 		I_aluop => dec_aluop,
 		I_src_op1 => dec_src_op1,
 		I_src_op2 => dec_src_op2,
+		I_enter_interrupt => ctrl_enter_interrupt,
 		O_busy => alu_busy,
 		O_data => alu_out,
-		O_PC => alu_pc
+		O_PC => alu_pc,
+		O_leave_interrupt => alu_leave_interrupt
 	);
 
 	bus_instance: bus_wb8 port map(
@@ -212,13 +222,16 @@ begin
 		I_regwrite => dec_regwrite,
 		I_alubusy => alu_busy,
 		I_membusy => bus_busy,
+		I_interrupt => '0',
+		I_leave_interrupt => alu_leave_interrupt,
 		O_decen => ctrl_decen,
 		O_aluen => ctrl_aluen,
 		O_memen => ctrl_memen,
 		O_regen => ctrl_regen,
 		O_regop => ctrl_regop,
 		O_memop => ctrl_memop,
-		O_mem_imem => ctrl_mem_imem
+		O_mem_imem => ctrl_mem_imem,
+		O_enter_interrupt => ctrl_enter_interrupt
 	);
 	
 	
