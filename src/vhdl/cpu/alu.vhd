@@ -58,7 +58,6 @@ begin
 			
 			-- check if we enter an interrupt handler and need to
 			-- save the pc and output the interrupt vector
-			O_leave_interrupt <= false;
 			if(I_enter_interrupt) then
 				pc_rti <= pc;
 				pc <= INTERRUPT_VECTOR; -- interrupt service routine expected there
@@ -82,6 +81,9 @@ begin
 				pc4 := std_logic_vector(unsigned(pc) + 4);
 				pcimm := std_logic_vector(unsigned(pc) + unsigned(I_imm));
 				newpc := pc4;
+				
+				-- by default don't signal interrupt exit
+				O_leave_interrupt <= false;
 			
 				-------------------------------
 				-- ALU core operations

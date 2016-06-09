@@ -59,9 +59,6 @@ begin
 					-- they're doing in case we directly loop back from their
 					-- respective stages
 					if I_alubusy = '0' and I_membusy = '0' then
-						if I_leave_interrupt then
-							in_interrupt := false;
-						end if;
 					
 						if I_interrupt = '1' and not in_interrupt then
 							O_enter_interrupt <= true;
@@ -129,6 +126,12 @@ begin
 				when REGWRITE =>
 					-- make sure ALU and memory are finished
 					if I_alubusy = '0' and I_membusy = '0' then
+					
+						-- check if ALU processed a "return from interrupt" instruction
+						if I_leave_interrupt then
+							in_interrupt := false;
+						end if;
+					
 						O_decen <= '0';
 						O_aluen <= '0';
 						O_memen <= '0';

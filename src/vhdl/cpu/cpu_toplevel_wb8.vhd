@@ -17,7 +17,9 @@ entity cpu_toplevel_wb8 is
 		DAT_O: out std_logic_vector(7 downto 0);
 		CYC_O: out std_logic := '0';
 		STB_O: out std_logic := '0';
-		WE_O: out std_logic := '0'
+		WE_O: out std_logic := '0';
+		-- interrupt is not a standard Wishbone signal
+		I_interrupt: in std_logic := '0'
 	);
 end cpu_toplevel_wb8;
 
@@ -222,7 +224,7 @@ begin
 		I_regwrite => dec_regwrite,
 		I_alubusy => alu_busy,
 		I_membusy => bus_busy,
-		I_interrupt => '0',
+		I_interrupt => I_interrupt,
 		I_leave_interrupt => alu_leave_interrupt,
 		O_decen => ctrl_decen,
 		O_aluen => ctrl_aluen,
