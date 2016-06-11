@@ -8,7 +8,7 @@ constant XLEN_ZERO: std_logic_vector(XLEN-1 downto 0) := X"00000000";
 constant XLEN_ONE: std_logic_vector(XLEN-1 downto 0) := X"00000001";
 
 constant RESET_VECTOR: 		std_logic_vector(XLEN-1 downto 0) := X"00000000";
-constant INTERRUPT_VECTOR:	std_logic_vector(XLEN-1 downto 0) := X"00000010";
+constant INTERRUPT_VECTOR:	std_logic_vector(XLEN-1 downto 0) := X"00000008";
 
 
 -- Opcodes

@@ -4,10 +4,12 @@ custom0 0,0,0,0
 
 
 .text
+# reset vector at 0x0
+.= 0x0
 	j main
 
-# interrupt service routine at 0x10
-.= 0x10
+# interrupt service routine at 0x8
+.= 0x8
 isr: 	li t1,0x10000000
 	li t5,0x2
 	sb t5,0(t1)
