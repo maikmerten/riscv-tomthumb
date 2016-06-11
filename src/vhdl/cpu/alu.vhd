@@ -16,9 +16,11 @@ entity alu is
 		I_aluop: in aluops_t;
 		I_src_op1: in op1src_t;
 		I_src_op2: in op2src_t;
+		I_enter_interrupt: in boolean := false;
 		O_busy: out std_logic := '0';
 		O_data: out std_logic_vector(XLEN-1 downto 0);
-		O_PC: out std_logic_vector(XLEN-1 downto 0)
+		O_PC: out std_logic_vector(XLEN-1 downto 0);
+		O_leave_interrupt: out boolean := false
 	);
 end alu;
 
@@ -26,7 +28,9 @@ architecture Behavioral of alu is
 	signal rdcycle: std_logic_vector(63 downto 0) := X"0000000000000000";
 	signal rdinstr: std_logic_vector(63 downto 0) := X"0000000000000000";
 	-- program counter
-	signal pc: std_logic_vector(XLEN-1 downto 0) := XLEN_ZERO;
+	signal pc: std_logic_vector(XLEN-1 downto 0) := RESET_VECTOR;
+	-- program counter copy (used for "return from interrupt (rti)" instruction)
+	signal pc_rti: std_logic_vector(XLEN-1 downto 0) := RESET_VECTOR;
 begin
 	process(I_clk)
 		variable newpc,pc4,pcimm,tmpval,op1,op2,sum: std_logic_vector(XLEN-1 downto 0);
@@ -47,9 +51,16 @@ begin
 			if(I_reset = '1') then
 				do_reset := true;
 				busy := false;
-				pc <= XLEN_ZERO;
+				pc <= RESET_VECTOR;
 			else
 				do_reset := false;
+			end if;
+			
+			-- check if we enter an interrupt handler and need to
+			-- save the pc and output the interrupt vector
+			if(I_enter_interrupt) then
+				pc_rti <= pc;
+				pc <= INTERRUPT_VECTOR; -- interrupt service routine expected there
 			end if;
 
 			-- select sources for operands
@@ -62,14 +73,17 @@ begin
 			if I_src_op2 = SRC_IMM then
 				op2 := I_imm;
 			end if;
-
+			
 			-- main business here
-			if I_en = '1' and not do_reset then
+			if I_en = '1' and not do_reset and not I_enter_interrupt then
 			
 				-- PC = PC + 4
 				pc4 := std_logic_vector(unsigned(pc) + 4);
 				pcimm := std_logic_vector(unsigned(pc) + unsigned(I_imm));
 				newpc := pc4;
+				
+				-- by default don't signal interrupt exit
+				O_leave_interrupt <= false;
 			
 				-------------------------------
 				-- ALU core operations
@@ -179,6 +193,9 @@ begin
 						newpc := sum(31 downto 1) & '0';
 						O_data <= pc4;
 
+					when ALU_RTI =>
+						newpc := pc_rti;
+						O_leave_interrupt <= true;
 			
 					when ALU_NOP =>
 						null;

@@ -11,6 +11,7 @@ entity sys_toplevel_wb8 is
 		I_clk: in std_logic;
 		I_reset: in std_logic := '0';
 		I_serial_rx: in std_logic;
+		I_interrupt: in std_logic;
 		O_leds: out std_logic_vector(7 downto 0) := X"00";
 		O_serial_tx: out std_logic;
 		O_vga_vsync, O_vga_hsync, O_vga_r, O_vga_g, O_vga_b: out std_logic := '0'
@@ -42,7 +43,8 @@ architecture Behavioral of sys_toplevel_wb8 is
 			DAT_O: out std_logic_vector(7 downto 0);
 			CYC_O: out std_logic := '0';
 			STB_O: out std_logic := '0';
-			WE_O: out std_logic := '0'
+			WE_O: out std_logic := '0';
+			I_interrupt: in std_logic := '0'
 		);	
 	end component;
 	
@@ -152,12 +154,15 @@ architecture Behavioral of sys_toplevel_wb8 is
 	
 	
 	signal inv_reset: std_logic := '0';
+	signal inv_interrupt: std_logic := '0';
 
 begin
 
 
 	-- reset button is inverted
 	inv_reset <= not I_reset;
+	-- interrupt button is also inverted
+	inv_interrupt <= not I_interrupt;
 	
 
 	arbiter_instance: arbiter_wb8 port map(
@@ -180,7 +185,8 @@ begin
 		DAT_O => cpu_DAT_O,
 		CYC_O => cpu_CYC_O,
 		STB_O => cpu_STB_O,
-		WE_O => cpu_WE_O
+		WE_O => cpu_WE_O,
+		I_interrupt => inv_interrupt
 	);
 	
 	leds_instance: leds_wb8 port map(

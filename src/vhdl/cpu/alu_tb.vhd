@@ -22,9 +22,11 @@ architecture Behavior of alu_tb is
 			I_aluop: in aluops_t;
 			I_src_op1: in op1src_t;
 			I_src_op2: in op2src_t;
+			I_enter_interrupt: in boolean := false;
 			O_busy: out std_logic := '0';
 			O_data: out std_logic_vector(XLEN-1 downto 0);
-			O_PC: out std_logic_vector(XLEN-1 downto 0)
+			O_PC: out std_logic_vector(XLEN-1 downto 0);
+			O_leave_interrupt: out boolean := false
 		);
 	end component;
 
@@ -39,9 +41,11 @@ architecture Behavior of alu_tb is
 	signal I_aluop: aluops_t;
 	signal I_src_op1: op1src_t;
 	signal I_src_op2: op2src_t;
+	signal I_enter_interrupt: boolean := false;
 	signal O_busy: std_logic;
 	signal O_data: std_logic_vector(31 downto 0);
 	signal O_PC: std_logic_vector(XLEN-1 downto 0);
+	signal O_leave_interrupt: boolean := false;
 
 begin
 
@@ -56,9 +60,11 @@ begin
 		I_aluop => I_aluop,
 		I_src_op1 => I_src_op1,
 		I_src_op2 => I_src_op2,
+		I_enter_interrupt => I_enter_interrupt,
 		O_busy => O_busy,
 		O_data => O_data,
-		O_PC => O_PC
+		O_PC => O_PC,
+		O_leave_interrupt => O_leave_interrupt
 	);
 
 	proc_clock: process

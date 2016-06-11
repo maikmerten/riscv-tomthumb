@@ -26,13 +26,20 @@ The CPU executes the RV32I subset of the RISC-V instruction set. Instructions ne
 
 MEMORY and REGWRITE are skipped for instructions that don't need these stages. After conclusion of the instruction fetch most instructions thus need between three and five additional cycles. Shift operations are slower, with the number of additional cycles being equal to the shift amount (shifts are done one bit position at a time).
 
-The speed of instruction fetch and load/store instructions is highly dependent on the bus interface. Currently, the only CPU interface available implements a Wisbone bus (http://cdn.opencores.org/downloads/wbspec_b4.pdf) with a data width of 8 bit (!) and an address width of 32 bit (bus_wb8.vhd). Four bus cycles are needed to fetch 32 bits, which means that performance is completely dominated by the dozen clock cycles needed to complete instruction fetch. Performance can thus trivially be improved by, e.g., plumbing in a 32-bit bus interface.
+The speed of instruction fetch and load/store instructions is highly dependent on the bus interface. Currently, the only CPU interface available implements a Wishbone bus (http://cdn.opencores.org/downloads/wbspec_b4.pdf) with a data width of 8 bit (!) and an address width of 32 bit (bus_wb8.vhd). Four bus cycles are needed to fetch 32 bits, which means that performance is completely dominated by the dozen clock cycles needed to complete instruction fetch. Performance can thus trivially be improved by, e.g., plumbing in a 32-bit bus interface.
 
 Basically, Tom Thumb implements a 2014 instruction set with (at best) 1970ies implementation features ;-)
 
-Interrupts are not currently supported, but are intended to be added in the future.
-
 The core starts execution at address 0x00000000.
+
+During the instruction fetch phase, the CPU will check if the interrupt line is pulled high. If so (and if not already handling an interrupt) the processor will jump to 0x00000008 which should contain an interrupt service routine. A "return from interrupt" instruction restores normal program flow. For reasons of simplicity, interrupt handling does not follow any particular official RISC-V specification. Instead the custom0 opcode is used for interrupt handling. The "return from interrupt (rti)" instruction is simply defined as follows:
+
+.macro rti
+custom0 0,0,0,0
+.endm
+
+
+If it is necessary to have support for more than one interrupt, a dedicated interrupt controller with several interrupt input lines should control the CPU's single interrupt line. This interrupt controller then should be queried and controlled by the interrupt service routine via memory-mapped I/O.
 
 
 Bus arbiter

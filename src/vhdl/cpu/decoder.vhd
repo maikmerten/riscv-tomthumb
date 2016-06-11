@@ -277,6 +277,9 @@ begin
 						when others => null;
 					end case;
 				
+				-- interrupt handling via custom-0 opcode
+				when OP_CUSTOM0 => aluop := ALU_RTI; -- "return from interrupt" instruction
+				
 			
 				when others =>
 					-- ignore unknown ops for now
