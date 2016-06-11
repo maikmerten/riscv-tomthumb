@@ -145,8 +145,7 @@ begin
 					
 						state <= FETCH;
 					end if;
-				when others =>
-					-- ignore unknown states
+
 			end case;
 		
 		
