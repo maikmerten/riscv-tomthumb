@@ -1,5 +1,5 @@
 CC=riscv32-unknown-elf-gcc
-CFLAGS=-I./libtomthumb -static -nostdlib -Os -fPIC
+CFLAGS=-I./libtomthumb -march=RV32IXcustom -static -nostdlib -Os -fPIC
 LDFLAGS=-L./libtomthumb -ltomthumb -Tlink.ld
 
 DUMP=riscv32-unknown-elf-objdump
