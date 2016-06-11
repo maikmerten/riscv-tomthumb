@@ -64,15 +64,16 @@ begin
 			end if;
 
 			-- select sources for operands
-			op1 := I_dataS1;
-			if I_src_op1 = SRC_PC then
-				op1 := pc;
-			end if;
+			case I_src_op1 is
+				when SRC_S1 => op1 := I_dataS1;
+				when SRC_PC => op1 := pc;
+			end case;
+
+			case I_src_op2 is
+				when SRC_S2 => op2 := I_dataS2;
+				when SRC_IMM => op2 := I_imm;
+			end case;
 			
-			op2 := I_dataS2;
-			if I_src_op2 = SRC_IMM then
-				op2 := I_imm;
-			end if;
 			
 			-- main business here
 			if I_en = '1' and not do_reset and not I_enter_interrupt then
