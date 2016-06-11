@@ -32,7 +32,7 @@ Basically, Tom Thumb implements a 2014 instruction set with (at best) 1970ies im
 
 The core starts execution at address 0x00000000.
 
-During the instruction fetch phase, the CPU will check if the interrupt line is pulled high. If so (and if not already handling an interrupt) the processor will jump to 0x00000008 which should contain an interrupt service routine. A "return from interrupt" instruction returns to the normal program flow. For reasons of simplicity, interrupt handling does not follow any particular official RISC-V specification. Instead the custom0 opcode is used for interrupt handling. The "return from interrupt instruction" is simply defined as follows:
+During the instruction fetch phase, the CPU will check if the interrupt line is pulled high. If so (and if not already handling an interrupt) the processor will jump to 0x00000008 which should contain an interrupt service routine. A "return from interrupt" instruction restores normal program flow. For reasons of simplicity, interrupt handling does not follow any particular official RISC-V specification. Instead the custom0 opcode is used for interrupt handling. The "return from interrupt (rti)" instruction is simply defined as follows:
 
 .macro rti
 custom0 0,0,0,0
