@@ -45,9 +45,8 @@ begin
 		
 			case state is
 				when RESET =>
-					--O_reset <= '1';
 					O_decen <= '0';
-					O_aluen <= '0'; -- ensure ALU is awake to see reset
+					O_aluen <= '0';
 					O_memen <= '0';
 					O_regen <= '0';
 					in_interrupt := false;
