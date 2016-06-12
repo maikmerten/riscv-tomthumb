@@ -131,4 +131,22 @@ set_global_assignment -name EDA_TEST_BENCH_FILE ../../src/vhdl/ram/bus_ram_tople
 set_global_assignment -name EDA_TEST_BENCH_FILE ../../src/vhdl/sys_wb8_tb.vhd -section_id sys_wb8_tb
 set_global_assignment -name EDA_TEST_BENCH_FILE ../../src/vhdl/vga/vga_wb8_tb.vhd -section_id vga_wb8_tb
 set_location_assignment PIN_E1 -to I_interrupt
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to O_leds[7]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to O_leds[6]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to O_leds[5]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to O_leds[4]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to O_leds[2]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to O_leds[3]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to O_leds[1]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to O_vga_vsync
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to O_vga_r
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to O_vga_g
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to O_leds[0]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to O_serial_tx
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to O_vga_b
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to O_vga_hsync
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to I_reset
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to I_serial_rx
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to I_interrupt
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to I_clk
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
