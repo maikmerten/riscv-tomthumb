@@ -5,7 +5,8 @@
 #define SERIAL_RREADY *((volatile char*)0x20000001)
 #define SERIAL_WREADY *((volatile char*)0x20000002)
 
-
+#define VGA_COLS 40
+#define VGA_ROWS 30
 #define VGA_TEXT *((volatile char*)(0x30000000 + vga_offset))
 #define VGA_COLOR *((volatile char*)(0x30000800 + vga_offset))
 
@@ -21,6 +22,25 @@ void set_printf_target(char target) {
 
 void set_printf_color(char color) {
 	printf_color = color;
+}
+
+void printf_scroll_line() {
+	char text,color;
+	// copy row contents from row below
+	for(vga_offset = 0; vga_offset < (VGA_ROWS - 1) * VGA_COLS; ++vga_offset) {
+		vga_offset += VGA_COLS;
+		text = VGA_TEXT;
+		color = VGA_COLOR;
+		vga_offset -= VGA_COLS;
+		VGA_TEXT = text;
+		VGA_COLOR = color;
+	}
+
+	// clear last line
+	for(vga_offset = (VGA_ROWS - 1) * VGA_COLS; vga_offset < VGA_ROWS * VGA_COLS; ++vga_offset) {
+		VGA_TEXT = ' ';
+		VGA_COLOR = 0;
+	}
 }
 
 void printf_c(char c) {
@@ -40,17 +60,18 @@ void printf_c(char c) {
 			vga_column = 0;
 		} else {
 			VGA_TEXT = c;
-			VGA_COLOR = 0xF0;
+			VGA_COLOR = printf_color;
 			vga_column++;
 		}
 
 
-		if(vga_column >= 40) {
+		if(vga_column >= VGA_COLS) {
 			vga_column = 0;
 			vga_row += 1;
 		}
-		if(vga_row >= 30) {
-			vga_row = 0;
+		while(vga_row >= VGA_ROWS) {
+			printf_scroll_line();
+			vga_row--;
 		}
 
 		//vga_offset = vga_row * 40 + vga_column;
