@@ -141,9 +141,6 @@ begin
 							O_data <= tmpval;
 						end if;
 					
-					when ALU_OP2 =>
-						O_data <= op2;
-				
 					when ALU_CYCLE =>
 						O_data <= rdcycle(31 downto 0);
 				
@@ -198,8 +195,6 @@ begin
 						newpc := pc_rti;
 						O_leave_interrupt <= true;
 			
-					when ALU_NOP =>
-						null;
 				end case;
 			
 			

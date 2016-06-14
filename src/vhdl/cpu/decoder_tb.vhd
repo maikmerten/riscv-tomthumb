@@ -162,11 +162,13 @@ begin
 		
 		I_instr <= X"f0f0f2b7"; -- lui t0,0xf0f0f
 		wait until falling_edge(I_clk);
+		assert O_rs1 = R0 report "wrong rs1 decoded" severity failure;
 		assert O_rd = T0 report "wrong rd decoded" severity failure;
 		assert O_imm = X"f0f0f000" report "wrong immediate decoded" severity failure;
 		assert O_regwrite = '1' report "wrong regwrite decoded" severity failure;
 		assert O_memop = MEMOP_NOP report "wrong memop decoded" severity failure;
-		assert O_aluop = ALU_OP2 report "wrong aluop decoded" severity failure;
+		assert O_aluop = ALU_ADD report "wrong aluop decoded" severity failure;
+		assert O_src_op1 = SRC_S1 report "wrong op1 src decoded" severity failure;
 		assert O_src_op2 = SRC_IMM report "wrong op2 src decoded" severity failure;
 
 		

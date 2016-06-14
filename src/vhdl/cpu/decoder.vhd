@@ -73,7 +73,7 @@ begin
 			--------------------------------------------------------
 			op1 := SRC_S1;
 			op2 := SRC_IMM;
-			aluop := ALU_NOP;
+			aluop := ALU_ADD;
 			memop := MEMOP_NOP;
 	
 			case opcode is
@@ -174,7 +174,9 @@ begin
 				-- OP_LUI
 				----------------
 				when OP_LUI =>
-					aluop := ALU_OP2; -- simply pass I_imm to O_data
+					-- ALU should output immediate value via addition with zero
+					aluop := ALU_ADD;
+					O_rs1 <= R0;
 				
 				----------------
 				-- OP_AUIPC
