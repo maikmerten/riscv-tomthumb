@@ -1,5 +1,5 @@
-Tom Thumb RISC-V CPU core and demo system
-=========================================
+# Tom Thumb RISC-V CPU core and demo system
+
 
 This repository contains the VHDL sources for a simple CPU design which executes RV32I RISC-V instructions (http://riscv.org/) and some peripherals for testing. Also included are project files for the Terasic DE0-Nano board (containing an Altera Cyclone IV FPGA) and some programs (mostly assembler) to test the design.
 
@@ -10,10 +10,11 @@ Primary design goals are simplicity of the design and lightness regarding consum
 To reflect its design sophistication and technical prowess, the design is named after Tom Thumb, an experimental locomotive design from 1830. https://en.wikipedia.org/wiki/Tom_Thumb_%28locomotive%29
 
 
-CPU Core
-========
+## CPU Core
 
-src/vhdl/cpu/
+
+    src/vhdl/cpu/
+
 
 The CPU executes the RV32I subset of the RISC-V instruction set. Instructions need several cycles to execute as they progress through following stages:
 
@@ -30,40 +31,42 @@ The speed of instruction fetch and load/store instructions is highly dependent o
 
 Basically, Tom Thumb implements a 2014 instruction set with (at best) 1970ies implementation features ;-)
 
-The core starts execution at address 0x00000000.
+The core starts execution at address **0x00000000**.
 
-During the instruction fetch phase, the CPU will check if the interrupt line is pulled high. If so (and if not already handling an interrupt) the processor will jump to 0x00000008 which should contain an interrupt service routine. A "return from interrupt" instruction restores normal program flow. For reasons of simplicity, interrupt handling does not follow any particular official RISC-V specification. Instead the custom0 opcode is used for interrupt handling. The "return from interrupt (rti)" instruction is simply defined as follows:
+### Interrupt support
 
-.macro rti
-custom0 0,0,0,0
-.endm
+During the instruction fetch phase, the CPU will check if the interrupt line is pulled high. If so (and if not already handling an interrupt) the processor will jump to **0x00000008** which should contain an interrupt service routine. A "return from interrupt" instruction restores normal program flow. For reasons of simplicity, interrupt handling does not follow any particular official RISC-V specification. Instead the custom0 opcode is used for interrupt handling. The "return from interrupt (rti)" instruction is simply defined as follows:
+
+    .macro rti
+    custom0 0,0,0,0
+    .endm
 
 
 If it is necessary to have support for more than one interrupt, a dedicated interrupt controller with several interrupt input lines should control the CPU's single interrupt line. This interrupt controller then should be queried and controlled by the interrupt service routine via memory-mapped I/O.
 
 
-Bus arbiter
-===========
+## Bus arbiter
 
-src/vhdl/arbiter
+
+    src/vhdl/arbiter
 
 This is a basically a muxer for the output signals of the peripheral devices and generator for the device select signals. The topmost four bits of the bus address are used to determine the peripheral to be selected, which allows for up to 16 attached peripherals. Consequently, each device has 28 bits of address space available.
 
 
 
-Synthesized RAM
-===============
+## Synthesized RAM
 
-src/vhdl/ram
+
+    src/vhdl/ram
 
 Four kilobytes of RAM, synthesized from FPGA block RAM (should be device-independent) and containing a test program. Eventually this should contain a simple bootloader that loads programs into a "proper" RAM device (e.g., the SDRAM contained on DE0-Nano board) and then jumps into the respective memory region.
 
 
 
-VGA output
-==========
+## VGA output
 
-src/vhdl/vga
+
+    src/vhdl/vga
 
 This component generates a 640x480@60 Hz VGA signal with a 40x30 text mode. Eight colors (one bit per color channel) are supported.
 
@@ -76,18 +79,18 @@ Three RAM blocks are utilized by the design:
 These RAMs are synthesized from FPGA block RAM resources and thus should be device-independent.
 
 
-Serial I/O
-==========
+## Serial I/O
 
-src/vhdl/serial
+
+    src/vhdl/serial
 
 A simple two-wire (TX and RX) serial interface that can be interfaced to, e.g., by means of a 3.3 Volt USB-serial cable. The interface is by default configured for 9600 Baud connections and features status registers to denote if fresh data has arrived and whether the device is ready to transmit data.
 
 
-LED output
-==========
+## LED output
 
-src/vhdl/leds
+
+    src/vhdl/leds
 
 The DE0-Nano board features eight LEDs, which can be controlled by the CPU by means of store instructions. The value currenty displayed can be read back.
 
