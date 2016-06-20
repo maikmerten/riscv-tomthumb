@@ -20,7 +20,9 @@ entity alu is
 		O_busy: out std_logic := '0';
 		O_data: out std_logic_vector(XLEN-1 downto 0);
 		O_PC: out std_logic_vector(XLEN-1 downto 0);
-		O_leave_interrupt: out boolean := false
+		O_leave_interrupt: out boolean := false;
+		O_enter_trap: out boolean := false;
+		O_leave_trap: out boolean := false
 	);
 end alu;
 
@@ -31,6 +33,8 @@ architecture Behavioral of alu is
 	signal pc: std_logic_vector(XLEN-1 downto 0) := RESET_VECTOR;
 	-- program counter copy (used for "return from interrupt (rti)" instruction)
 	signal pc_rti: std_logic_vector(XLEN-1 downto 0) := RESET_VECTOR;
+	-- program counter copy (used for "return from trap (rtt)" instruction)
+	signal pc_rtt: std_logic_vector(XLEN-1 downto 0) := RESET_VECTOR;
 begin
 	process(I_clk)
 		variable newpc,pc4,pcimm,tmpval,op1,op2,sum: std_logic_vector(XLEN-1 downto 0);
@@ -85,6 +89,10 @@ begin
 				
 				-- by default don't signal interrupt exit
 				O_leave_interrupt <= false;
+				
+				-- by default we won't enter or leave a trap
+				O_enter_trap <= false;
+				O_leave_trap <= false;
 			
 				-------------------------------
 				-- ALU core operations
@@ -194,6 +202,21 @@ begin
 					when ALU_RTI =>
 						newpc := pc_rti;
 						O_leave_interrupt <= true;
+					
+					when ALU_TRAP =>
+						-- enter a trap
+						newpc := TRAP_VECTOR;
+						pc_rtt <= pc4; -- return to succeeding instruction
+						O_enter_trap <= true;
+						
+					when ALU_RTT =>
+						-- return from trap
+						newpc := pc_rtt; -- jump to trap retrun address
+						O_leave_trap <= true;
+					
+					when ALU_GETTRAPRET =>
+						-- retrieve return address for trap
+						O_data <= pc_rtt;
 			
 				end case;
 			

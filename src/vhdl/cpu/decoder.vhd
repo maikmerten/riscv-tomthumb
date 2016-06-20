@@ -73,7 +73,7 @@ begin
 			--------------------------------------------------------
 			op1 := SRC_S1;
 			op2 := SRC_IMM;
-			aluop := ALU_ADD;
+			aluop := ALU_TRAP;
 			memop := MEMOP_NOP;
 	
 			case opcode is
@@ -280,8 +280,14 @@ begin
 					end case;
 				
 				-- interrupt handling via custom-0 opcode
-				when OP_CUSTOM0 => aluop := ALU_RTI; -- "return from interrupt" instruction
-				
+				when OP_CUSTOM0 =>
+					case funct7 is
+						when "0000000" => aluop := ALU_RTI; -- "return from interrupt" instruction
+						when "0000010" => aluop := ALU_RTT; -- "return from trap" instruction
+						when "0000011" => aluop := ALU_GETTRAPRET; -- "get trap return address" instruction
+						when others => null;
+					end case;
+			
 			
 				when others =>
 					-- ignore unknown ops for now
