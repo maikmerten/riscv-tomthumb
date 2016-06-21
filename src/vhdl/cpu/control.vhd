@@ -15,9 +15,8 @@ entity control is
 		I_membusy: in std_logic;
 		I_memop: in memops_t; -- from decoder
 		I_interrupt: in std_logic; -- from outside world
-		I_leave_interrupt: in boolean; -- from ALU
-		I_enter_trap: in boolean; -- from ALU
-		I_leave_trap: in boolean; -- from ALU
+		I_in_interrupt: in boolean; -- from ALU
+		I_in_trap: in boolean; -- from ALU
 		-- enable signals for components
 		O_decen: out std_logic;
 		O_aluen: out std_logic;
@@ -51,9 +50,7 @@ begin
 					O_aluen <= '0';
 					O_memen <= '0';
 					O_regen <= '0';
-					in_interrupt := false;
-					in_trap := false;
-				
+			
 					state <= FETCH;
 				
 				when FETCH =>
@@ -62,9 +59,8 @@ begin
 					-- respective stages
 					if I_alubusy = '0' and I_membusy = '0' then
 					
-						if I_interrupt = '1' and not in_interrupt and not in_trap then
+						if I_interrupt = '1' and not I_in_interrupt and not I_in_trap then
 							O_enter_interrupt <= true;
-							in_interrupt := true;
 						else				
 							O_decen <= '0';
 							O_aluen <= '0';
@@ -128,20 +124,7 @@ begin
 				when REGWRITE =>
 					-- make sure ALU and memory are finished
 					if I_alubusy = '0' and I_membusy = '0' then
-					
-						-- check if ALU processed a "return from interrupt" instruction
-						if I_leave_interrupt then
-							in_interrupt := false;
-						end if;
-						
-						if I_enter_trap then
-							in_trap := true;
-						end if;
-						
-						if I_leave_trap then
-							in_trap := false;
-						end if;
-					
+				
 						O_decen <= '0';
 						O_aluen <= '0';
 						O_memen <= '0';

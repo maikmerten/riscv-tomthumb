@@ -190,7 +190,7 @@ begin
 		assert O_rs2 = R0 report "wrong rs2 decoded" severity failure;
 		assert O_regwrite = '1' report "wrong regwrite decoded" severity failure;
 		assert O_memop = MEMOP_NOP report "wrong memop decoded" severity failure;
-		assert O_aluop = ALU_CYCLE report "wrong aluop decoded" severity failure;
+		assert O_aluop = ALU_TRAP report "wrong aluop decoded" severity failure;
 		
 		
 		I_instr <= X"c80023f3"; -- rdcycleh t1
@@ -199,7 +199,7 @@ begin
 		assert O_rs2 = R0 report "wrong rs2 decoded" severity failure;
 		assert O_regwrite = '1' report "wrong regwrite decoded" severity failure;
 		assert O_memop = MEMOP_NOP report "wrong memop decoded" severity failure;
-		assert O_aluop = ALU_CYCLEH report "wrong aluop decoded" severity failure;
+		assert O_aluop = ALU_TRAP report "wrong aluop decoded" severity failure;
 
 		
 		wait for I_clk_period;		
