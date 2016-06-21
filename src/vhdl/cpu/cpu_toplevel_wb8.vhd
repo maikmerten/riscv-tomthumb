@@ -41,7 +41,8 @@ architecture Behavioral of cpu_toplevel_wb8 is
 			O_busy: out std_logic := '0';
 			O_data: out std_logic_vector(XLEN-1 downto 0);
 			O_PC: out std_logic_vector(XLEN-1 downto 0);
-			O_leave_interrupt: out boolean := false
+			O_in_interrupt: out boolean := false;
+			O_in_trap: out boolean := false
 		);
 	end component;
 	
@@ -82,7 +83,8 @@ architecture Behavioral of cpu_toplevel_wb8 is
 			I_membusy: in std_logic;
 			I_memop: in memops_t; -- from decoder
 			I_interrupt: in std_logic; -- from outside world
-			I_leave_interrupt: in boolean; -- from ALU
+			I_in_interrupt: in boolean; -- from ALU
+			I_in_trap: in boolean; -- from ALU
 			-- enable signals for components
 			O_decen: out std_logic;
 			O_aluen: out std_logic;
@@ -135,8 +137,8 @@ architecture Behavioral of cpu_toplevel_wb8 is
 	signal alu_memop: memops_t;
 	signal alu_busy: std_logic := '0';
 	signal alu_pc: std_logic_vector(XLEN-1 downto 0);
-	signal alu_leave_interrupt: boolean := false;
-	
+	signal alu_in_interrupt: boolean := false;
+	signal alu_in_trap: boolean := false;
 	
 	signal ctrl_pcuen: std_logic := '0';
 	signal ctrl_decen: std_logic := '0';
@@ -191,7 +193,8 @@ begin
 		O_busy => alu_busy,
 		O_data => alu_out,
 		O_PC => alu_pc,
-		O_leave_interrupt => alu_leave_interrupt
+		O_in_interrupt => alu_in_interrupt,
+		O_in_trap => alu_in_trap
 	);
 
 	bus_instance: bus_wb8 port map(
@@ -225,7 +228,8 @@ begin
 		I_alubusy => alu_busy,
 		I_membusy => bus_busy,
 		I_interrupt => I_interrupt,
-		I_leave_interrupt => alu_leave_interrupt,
+		I_in_interrupt => alu_in_interrupt,
+		I_in_trap => alu_in_trap,
 		O_decen => ctrl_decen,
 		O_aluen => ctrl_aluen,
 		O_memen => ctrl_memen,

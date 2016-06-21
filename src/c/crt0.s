@@ -2,6 +2,14 @@
 custom0 0,0,0,0
 .endm
 
+.macro rtt
+custom0 0,0,0,2
+.endm
+
+.macro gtret rd
+custom0 \rd,0,0,3
+.endm
+
 .section .text
  
 .global _start
@@ -14,6 +22,11 @@ j _init
 .=0x8
 # for now, just return from interrupt
 rti
+
+# trap handler at 0x10
+.=0x10
+# don't handle anything, just return from trap
+rtt
 
 _init:
 # set up stack pointer

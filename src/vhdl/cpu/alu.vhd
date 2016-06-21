@@ -20,17 +20,20 @@ entity alu is
 		O_busy: out std_logic := '0';
 		O_data: out std_logic_vector(XLEN-1 downto 0);
 		O_PC: out std_logic_vector(XLEN-1 downto 0);
-		O_leave_interrupt: out boolean := false
+		O_in_interrupt: out boolean := false;
+		O_in_trap: out boolean := false
 	);
 end alu;
 
 architecture Behavioral of alu is
-	signal rdcycle: std_logic_vector(63 downto 0) := X"0000000000000000";
-	signal rdinstr: std_logic_vector(63 downto 0) := X"0000000000000000";
 	-- program counter
 	signal pc: std_logic_vector(XLEN-1 downto 0) := RESET_VECTOR;
 	-- program counter copy (used for "return from interrupt (rti)" instruction)
 	signal pc_rti: std_logic_vector(XLEN-1 downto 0) := RESET_VECTOR;
+	signal in_interrupt: boolean := false;
+	-- program counter copy (used for "return from trap (rtt)" instruction)
+	signal pc_rtt: std_logic_vector(XLEN-1 downto 0) := RESET_VECTOR;
+	signal in_trap: boolean := false;
 begin
 	process(I_clk)
 		variable newpc,pc4,pcimm,tmpval,op1,op2,sum: std_logic_vector(XLEN-1 downto 0);
@@ -41,17 +44,18 @@ begin
 	begin
 	
 		O_pc <= pc;
+		O_in_interrupt <= in_interrupt;
+		O_in_trap <= in_trap;
 	
 		if rising_edge(I_clk) then
-
-			-- increment cycle counter each clock
-			rdcycle <= std_logic_vector(unsigned(rdcycle) + 1);
 
 			-- check for reset
 			if(I_reset = '1') then
 				do_reset := true;
 				busy := false;
 				pc <= RESET_VECTOR;
+				in_interrupt <= false;
+				in_trap <= false;
 			else
 				do_reset := false;
 			end if;
@@ -61,6 +65,7 @@ begin
 			if(I_enter_interrupt) then
 				pc_rti <= pc;
 				pc <= INTERRUPT_VECTOR; -- interrupt service routine expected there
+				in_interrupt <= true;
 			end if;
 
 			-- select sources for operands
@@ -82,10 +87,7 @@ begin
 				pc4 := std_logic_vector(unsigned(pc) + 4);
 				pcimm := std_logic_vector(unsigned(pc) + unsigned(I_imm));
 				newpc := pc4;
-				
-				-- by default don't signal interrupt exit
-				O_leave_interrupt <= false;
-			
+		
 				-------------------------------
 				-- ALU core operations
 				-------------------------------
@@ -141,18 +143,6 @@ begin
 							O_data <= tmpval;
 						end if;
 					
-					when ALU_CYCLE =>
-						O_data <= rdcycle(31 downto 0);
-				
-					when ALU_CYCLEH =>
-						O_data <= rdcycle(63 downto 32);
-				
-					when ALU_INSTR =>
-						O_data <= rdinstr(31 downto 0);
-				
-					when ALU_INSTRH =>
-						O_data <= rdinstr(63 downto 32);
-					
 					when ALU_BEQ =>
 						if eq then
 							newpc := pcimm;
@@ -193,7 +183,22 @@ begin
 
 					when ALU_RTI =>
 						newpc := pc_rti;
-						O_leave_interrupt <= true;
+						in_interrupt <= false;
+					
+					when ALU_TRAP =>
+						-- enter a trap
+						newpc := TRAP_VECTOR;
+						pc_rtt <= pc4; -- return to succeeding instruction
+						in_trap <= true;
+						
+					when ALU_RTT =>
+						-- return from trap
+						newpc := pc_rtt; -- jump to trap retrun address
+						in_trap <= false;
+					
+					when ALU_GETTRAPRET =>
+						-- retrieve return address for trap
+						O_data <= pc_rtt;
 			
 				end case;
 			
@@ -202,8 +207,6 @@ begin
 					O_busy <= '1';
 				else
 					O_busy <= '0';
-					-- we processed an instruction, increase instruction counter
-					rdinstr <= std_logic_vector(unsigned(rdinstr) + 1);
 					pc <= newpc;
 				end if;
 		

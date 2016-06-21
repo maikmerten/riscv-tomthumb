@@ -44,6 +44,24 @@ During the instruction fetch phase, the CPU will check if the interrupt line is 
 
 If it is necessary to have support for more than one interrupt, a dedicated interrupt controller with several interrupt input lines should control the CPU's single interrupt line. This interrupt controller then should be queried and controlled by the interrupt service routine via memory-mapped I/O.
 
+### Trap support
+
+Instructions with the SYSTEM opcode (as well as all unknown opcodes) will be trapped by the CPU. Normal program flow will be interrupted and the CPU will jump to **0x00000010**, where a trap handling routine should be present. For trap-handling, following custom instructions are defined:
+
+The "return from trap (rtt)" instruction will resume execution of the program by jumping to the instruction *following* the instruction that caused the trap. A simple trap-handler can consist merely of the rtt-instruction ("ignore all traps").
+
+    .macro rtt
+    custom0 0,0,0,2
+    .endm
+
+The "get trap return address (gtret)" instruction will provide the address where the rtt-instruction will resume execution. By loading from that address with an offset of -4 the instruction that caused the trap can be retrieved and analyzed.
+
+    .macro gtret rd
+    custom0 \rd,0,0,3
+    .endm
+
+Note that the trap handling routine should **never** include instructions that cause another trap, as nested traps are not supported. Interrupts, however, may include instructions that cause trap-handling. To avoid nested traps, interrupts will not be served while handling a trap.
+
 
 ## Bus arbiter
 

@@ -73,7 +73,7 @@ begin
 			--------------------------------------------------------
 			op1 := SRC_S1;
 			op2 := SRC_IMM;
-			aluop := ALU_ADD;
+			aluop := ALU_TRAP;
 			memop := MEMOP_NOP;
 	
 			case opcode is
@@ -265,23 +265,21 @@ begin
 				when OP_JALR => aluop := ALU_JALR;
 					
 				----------------
-				-- OP_SYSTEM
+				-- OP_MISCMEM
 				----------------
 				
-				when OP_SYSTEM =>
-					case funct12 is
-						when "110000000000" => aluop := ALU_CYCLE;  -- RDCYCLE
-						when "110010000000" => aluop := ALU_CYCLEH; -- RDCYCLEH
-						when "110000000001" => aluop := ALU_CYCLE;  -- RDTIME
-						when "110010000001" => aluop := ALU_CYCLEH; -- RDTIMEH
-						when "110000000010" => aluop := ALU_INSTR;  -- RDINSTRET
-						when "110010000010" => aluop := ALU_INSTRH; -- RDINSTRETH
+				when OP_MISCMEM => aluop := ALU_ADD; -- basically NOP FENCE instructions
+				
+				
+				-- interrupt and trap handling via custom-0 opcode
+				when OP_CUSTOM0 =>
+					case funct7 is
+						when "0000000" => aluop := ALU_RTI; -- "return from interrupt" instruction
+						when "0000010" => aluop := ALU_RTT; -- "return from trap" instruction
+						when "0000011" => aluop := ALU_GETTRAPRET; -- "get trap return address" instruction
 						when others => null;
 					end case;
-				
-				-- interrupt handling via custom-0 opcode
-				when OP_CUSTOM0 => aluop := ALU_RTI; -- "return from interrupt" instruction
-				
+			
 			
 				when others =>
 					-- ignore unknown ops for now
