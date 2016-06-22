@@ -3,11 +3,11 @@ custom0 0,0,0,0
 .endm
 
 .macro rtt
-custom0 0,0,0,2
+custom0 0,0,0,8
 .endm
 
 .macro gtret rd
-custom0 \rd,0,0,3
+custom0 \rd,0,0,9
 .endm
 
 
