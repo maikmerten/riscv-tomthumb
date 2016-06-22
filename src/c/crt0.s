@@ -2,6 +2,14 @@
 custom0 0,0,0,0
 .endm
 
+.macro eni
+custom0 0,0,0,1
+.endm
+
+.macro disi
+custom0 0,0,0,2
+.endm
+
 .macro rtt
 custom0 0,0,0,8
 .endm

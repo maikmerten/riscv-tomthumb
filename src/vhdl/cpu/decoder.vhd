@@ -275,6 +275,8 @@ begin
 				when OP_CUSTOM0 =>
 					case funct7 is
 						when "0000000" => aluop := ALU_RTI; -- "return from interrupt" instruction
+						when "0000001" => aluop := ALU_ENABLEI; -- "enable interrupt" instruction
+						when "0000010" => aluop := ALU_DISABLEI; -- "disable interrupt" instruction
 						when "0001000" => aluop := ALU_RTT; -- "return from trap" instruction
 						when "0001001" => aluop := ALU_GETTRAPRET; -- "get trap return address" instruction
 						when others => null;

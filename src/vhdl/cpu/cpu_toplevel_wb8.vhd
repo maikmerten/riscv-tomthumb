@@ -42,6 +42,7 @@ architecture Behavioral of cpu_toplevel_wb8 is
 			O_data: out std_logic_vector(XLEN-1 downto 0);
 			O_PC: out std_logic_vector(XLEN-1 downto 0);
 			O_in_interrupt: out boolean := false;
+			O_interrupt_enabled: out boolean := false;
 			O_in_trap: out boolean := false
 		);
 	end component;
@@ -84,6 +85,7 @@ architecture Behavioral of cpu_toplevel_wb8 is
 			I_memop: in memops_t; -- from decoder
 			I_interrupt: in std_logic; -- from outside world
 			I_in_interrupt: in boolean; -- from ALU
+			I_interrupt_enabled: in boolean; -- from ALU
 			I_in_trap: in boolean; -- from ALU
 			-- enable signals for components
 			O_decen: out std_logic;
@@ -138,6 +140,7 @@ architecture Behavioral of cpu_toplevel_wb8 is
 	signal alu_busy: std_logic := '0';
 	signal alu_pc: std_logic_vector(XLEN-1 downto 0);
 	signal alu_in_interrupt: boolean := false;
+	signal alu_interrupt_enabled: boolean := false;
 	signal alu_in_trap: boolean := false;
 	
 	signal ctrl_pcuen: std_logic := '0';
@@ -194,6 +197,7 @@ begin
 		O_data => alu_out,
 		O_PC => alu_pc,
 		O_in_interrupt => alu_in_interrupt,
+		O_interrupt_enabled => alu_interrupt_enabled,
 		O_in_trap => alu_in_trap
 	);
 
@@ -229,6 +233,7 @@ begin
 		I_membusy => bus_busy,
 		I_interrupt => I_interrupt,
 		I_in_interrupt => alu_in_interrupt,
+		I_interrupt_enabled => alu_interrupt_enabled,
 		I_in_trap => alu_in_trap,
 		O_decen => ctrl_decen,
 		O_aluen => ctrl_aluen,

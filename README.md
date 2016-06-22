@@ -42,6 +42,19 @@ During the instruction fetch phase, the CPU will check if the interrupt line is 
     .endm
 
 
+Note that the CPU will by default ignore interrupts. This is to prevent that the interrupt service routine will be executed directly after reset, before, e.g., the stack is set up properly. After the machine is set up properly, interrupt handling can be enabled via the "enable interrupt (eni)" instruction:
+
+    .macro eni
+    custom0 0,0,0,1
+    .endm
+
+Interrupt handling can be disabled via the "disable interrupt (disi)" instruction:
+
+    .macro disi
+    custom0 0,0,0,2
+    .endm
+
+
 If it is necessary to have support for more than one interrupt, a dedicated interrupt controller with several interrupt input lines should control the CPU's single interrupt line. This interrupt controller then should be queried and controlled by the interrupt service routine via memory-mapped I/O.
 
 ### Trap support

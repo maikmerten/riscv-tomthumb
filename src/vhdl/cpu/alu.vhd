@@ -21,6 +21,7 @@ entity alu is
 		O_data: out std_logic_vector(XLEN-1 downto 0);
 		O_PC: out std_logic_vector(XLEN-1 downto 0);
 		O_in_interrupt: out boolean := false;
+		O_interrupt_enabled: out boolean := false;
 		O_in_trap: out boolean := false
 	);
 end alu;
@@ -31,6 +32,7 @@ architecture Behavioral of alu is
 	-- program counter copy (used for "return from interrupt (rti)" instruction)
 	signal pc_rti: std_logic_vector(XLEN-1 downto 0) := RESET_VECTOR;
 	signal in_interrupt: boolean := false;
+	signal interrupt_enabled: boolean := false;
 	-- program counter copy (used for "return from trap (rtt)" instruction)
 	signal pc_rtt: std_logic_vector(XLEN-1 downto 0) := RESET_VECTOR;
 	signal in_trap: boolean := false;
@@ -45,6 +47,7 @@ begin
 	
 		O_pc <= pc;
 		O_in_interrupt <= in_interrupt;
+		O_interrupt_enabled <= interrupt_enabled;
 		O_in_trap <= in_trap;
 	
 		if rising_edge(I_clk) then
@@ -54,6 +57,7 @@ begin
 				do_reset := true;
 				busy := false;
 				pc <= RESET_VECTOR;
+				interrupt_enabled <= false;
 				in_interrupt <= false;
 				in_trap <= false;
 			else
@@ -180,6 +184,12 @@ begin
 					when ALU_JALR =>
 						newpc := sum(31 downto 1) & '0';
 						O_data <= pc4;
+						
+					when ALU_ENABLEI =>
+						interrupt_enabled <= true;
+						
+					when ALU_DISABLEI =>
+						interrupt_enabled <= false;
 
 					when ALU_RTI =>
 						newpc := pc_rti;

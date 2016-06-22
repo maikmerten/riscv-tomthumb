@@ -27,6 +27,7 @@ architecture Behavior of alu_tb is
 			O_data: out std_logic_vector(XLEN-1 downto 0);
 			O_PC: out std_logic_vector(XLEN-1 downto 0);
 			O_in_interrupt: out boolean := false;
+			O_interrupt_enabled: out boolean := false;
 			O_in_trap: out boolean := false
 		);
 	end component;
@@ -47,6 +48,7 @@ architecture Behavior of alu_tb is
 	signal O_data: std_logic_vector(31 downto 0);
 	signal O_PC: std_logic_vector(XLEN-1 downto 0);
 	signal O_in_interrupt: boolean := false;
+	signal O_interrupt_enabled: boolean := false;
 	signal O_in_trap: boolean := false;
 
 begin
@@ -67,6 +69,7 @@ begin
 		O_data => O_data,
 		O_PC => O_PC,
 		O_in_interrupt => O_in_interrupt,
+		O_interrupt_enabled => O_interrupt_enabled,
 		O_in_trap => O_in_trap
 	);
 

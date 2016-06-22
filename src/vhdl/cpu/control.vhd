@@ -16,6 +16,7 @@ entity control is
 		I_memop: in memops_t; -- from decoder
 		I_interrupt: in std_logic; -- from outside world
 		I_in_interrupt: in boolean; -- from ALU
+		I_interrupt_enabled: in boolean; -- from ALU
 		I_in_trap: in boolean; -- from ALU
 		-- enable signals for components
 		O_decen: out std_logic;
@@ -59,7 +60,7 @@ begin
 					-- respective stages
 					if I_alubusy = '0' and I_membusy = '0' then
 					
-						if I_interrupt = '1' and not I_in_interrupt and not I_in_trap then
+						if I_interrupt = '1' and I_interrupt_enabled and not I_in_interrupt and not I_in_trap then
 							O_enter_interrupt <= true;
 						else				
 							O_decen <= '0';

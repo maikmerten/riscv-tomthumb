@@ -2,6 +2,14 @@
 custom0 0,0,0,0
 .endm
 
+.macro eni
+custom0 0,0,0,1
+.endm
+
+.macro disi
+custom0 0,0,0,2
+.endm
+
 .macro rtt
 custom0 0,0,0,8
 .endm
@@ -39,7 +47,7 @@ loop_trap_delay:
 	rtt
 
 
-
+# interrupt service routine
 isr: 	li t1,0x10000000
 	li t5,0x2
 	sb t5,0(t1)
@@ -53,6 +61,9 @@ fail:
 
 # main program: flicker one board LED
 main:
+	# enable interrupts
+	eni
+
 	li t1,0x10000000
 	li t0,0x1
 	sb t0,0(t1)
