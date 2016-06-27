@@ -31,7 +31,7 @@ The speed of instruction fetch and load/store instructions is highly dependent o
 
 Basically, Tom Thumb implements a 2014 instruction set with (at best) 1970ies implementation features ;-)
 
-The core starts execution at address **0x00000000**.
+The core starts execution at address **0x00000000**, where a jump instruction to a bootstrap routine should be present.
 
 ### Interrupt support
 
@@ -59,7 +59,7 @@ If it is necessary to have support for more than one interrupt, a dedicated inte
 
 ### Trap support
 
-Instructions with the SYSTEM opcode (as well as all unknown opcodes) will be trapped by the CPU. Normal program flow will be interrupted and the CPU will jump to **0x00000010**, where a trap handling routine should be present. For trap-handling, following custom instructions are defined:
+Instructions with the SYSTEM opcode (as well as all unknown opcodes) will be trapped by the CPU. Normal program flow will be interrupted and the CPU will jump to **0x00000004**, where a jump instruction to a trap handling routine should be present. For trap-handling, following custom instructions are defined:
 
 The "return from trap (rtt)" instruction will resume execution of the program by jumping to the instruction *following* the instruction that caused the trap. A simple trap-handler can consist merely of the rtt-instruction ("ignore all traps").
 

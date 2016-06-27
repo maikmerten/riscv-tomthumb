@@ -24,12 +24,24 @@ custom0 \rd,0,0,9
 .= 0x0
 	j main
 
+# software trap handler at 0x4
+.=0x4
+	j trap
+
 # interrupt service routine at 0x8
 .= 0x8
-	j isr
+# interrupt service routine
+isr: 	li t1,0x10000000
+	li t5,0x2
+	sb t5,0(t1)
+	rti
 
-# software trap handler at 0x10
-.=0x10
+# we should only end up here if rti fails
+fail:
+	li t5,0x8
+	sb t5,0(t1)
+	j fail
+
 
 trap:
 	gtret x1
@@ -47,17 +59,6 @@ loop_trap_delay:
 	rtt
 
 
-# interrupt service routine
-isr: 	li t1,0x10000000
-	li t5,0x2
-	sb t5,0(t1)
-	rti
-
-# we should only end up here if rti fails
-fail:
-	li t5,0x8
-	sb t5,0(t1)
-	j fail
 
 # main program: flicker one board LED
 main:
