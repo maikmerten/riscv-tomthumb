@@ -77,7 +77,11 @@ architecture Behavioral of sys_toplevel_wb8 is
 	end component;
 	
 	component serial_wb8 is
-		Port(
+		generic(
+			CLOCKFREQ : integer;
+			BAUDRATE: integer
+		);
+		port(
 			-- naming according to Wishbone B4 spec
 			ADR_I: in std_logic_vector(31 downto 0);
 			CLK_I: in std_logic;
@@ -90,7 +94,7 @@ architecture Behavioral of sys_toplevel_wb8 is
 			-- serial interface (receive, transmit)
 			I_rx: in std_logic;
 			O_tx: out std_logic
-	);
+		);
 	end component;
 	
 	component vga_wb8
@@ -201,7 +205,12 @@ begin
 		O_leds => O_leds -- dummy_leds_O
 	);
 	
-	serial_instance: serial_wb8 port map(
+	serial_instance: serial_wb8
+	generic map(
+		CLOCKFREQ => 50000000,
+		BAUDRATE => 9600
+	)
+	port map(
 		ADR_I => cpu_ADR_O,
 		CLK_I => pll_clk,
 		DAT_I => cpu_DAT_O,

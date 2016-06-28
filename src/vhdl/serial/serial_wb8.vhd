@@ -4,7 +4,11 @@ use IEEE.NUMERIC_STD.ALL;
 
 
 entity serial_wb8 is
-	Port(
+	generic(
+		CLOCKFREQ: integer;
+		BAUDRATE: integer
+	);
+	port(
 		-- naming according to Wishbone B4 spec
 		ADR_I: in std_logic_vector(31 downto 0);
 		CLK_I: in std_logic;
@@ -22,9 +26,7 @@ end serial_wb8;
 
 
 architecture Behavioral of serial_wb8 is
-	constant clock_freq: integer := 50 * 1000000;
-	constant baud: integer := 9600;
-	constant baudclocks: integer := clock_freq/baud;
+	constant baudclocks: integer := CLOCKFREQ/BAUDRATE;
 	
 	type read_states is (READ_IDLE, READING);
 	signal readstate: read_states := READ_IDLE;
