@@ -20,115 +20,6 @@ end sys_toplevel_wb8;
 
 
 architecture Behavioral of sys_toplevel_wb8 is
-
-	component arbiter_wb8
-		Port(
-			ADR_I: in std_logic_vector(31 downto 0);
-			ACK_I: in arb_ACK_I_t;
-			DAT_I: in arb_DAT_I_t;
-			STB_I: in std_logic := '0';
-			ACK_O: out std_logic := '0';
-			DAT_O: out std_logic_vector(7 downto 0);
-			STB_O: out arb_STB_O_t
-		);
-	end component;
-
-	component cpu_toplevel_wb8
-		Port(
-			CLK_I: in std_logic := '0';
-			ACK_I: in std_logic := '0';
-			DAT_I: in std_logic_vector(7 downto 0);
-			RST_I: in std_logic := '0';
-			ADR_O: out std_logic_vector(31 downto 0);
-			DAT_O: out std_logic_vector(7 downto 0);
-			CYC_O: out std_logic := '0';
-			STB_O: out std_logic := '0';
-			WE_O: out std_logic := '0';
-			I_interrupt: in std_logic := '0'
-		);	
-	end component;
-	
-	component leds_wb8 is
-		Port(
-			-- naming according to Wishbone B4 spec
-			ADR_I: in std_logic_vector(31 downto 0);
-			CLK_I: in std_logic;
-			DAT_I: in std_logic_vector(7 downto 0);
-			STB_I: in std_logic;
-			WE_I: in std_logic;
-			ACK_O: out std_logic;
-			DAT_O: out std_logic_vector(7 downto 0);
-			-- control signal for onboard LEDs
-			O_leds: out std_logic_vector(7 downto 0)
-		);
-	end component;
-	
-	
-	component ram_wb8
-		Port(
-			CLK_I: in std_logic;
-			STB_I: in std_logic;
-			WE_I: in std_logic;
-			ADR_I: in std_logic_vector(XLEN-1 downto 0);
-			DAT_I: in std_logic_vector(7 downto 0);
-			DAT_O: out std_logic_vector(7 downto 0);
-			ACK_O: out std_logic
-		);	
-	end component;
-	
-	component serial_wb8 is
-		generic(
-			CLOCKFREQ : integer;
-			BAUDRATE: integer
-		);
-		port(
-			-- naming according to Wishbone B4 spec
-			ADR_I: in std_logic_vector(31 downto 0);
-			CLK_I: in std_logic;
-			DAT_I: in std_logic_vector(7 downto 0);
-			STB_I: in std_logic;
-			WE_I: in std_logic;
-			ACK_O: out std_logic;
-			DAT_O: out std_logic_vector(7 downto 0);	
-	
-			-- serial interface (receive, transmit)
-			I_rx: in std_logic;
-			O_tx: out std_logic
-		);
-	end component;
-	
-	component vga_wb8
-		Port(
-			-- naming according to Wishbone B4 spec
-			ADR_I: in std_logic_vector(31 downto 0);
-			CLK_I: in std_logic;
-			DAT_I: in std_logic_vector(7 downto 0);
-			STB_I: in std_logic;
-			WE_I: in std_logic;
-			ACK_O: out std_logic;
-			DAT_O: out std_logic_vector(7 downto 0);
-
-			I_vga_clk: in std_logic := '0';
-			O_vga_vsync, O_vga_hsync, O_vga_r, O_vga_g, O_vga_b: out std_logic := '0'
-	);	
-	
-	end component;
-	
-	
-	component wizpll
-		PORT(
-			inclk0: IN STD_LOGIC := '0';
-			c0: OUT STD_LOGIC 
-		);
-	end component;
-	
-	
-	component wizpll_vga
-		PORT(
-			inclk0: IN STD_LOGIC := '0';
-			c0: OUT STD_LOGIC 
-		);
-	end component;
 	
 	signal arb_ACK_O: std_logic := '0';
 	signal arb_DAT_O: std_logic_vector(7 downto 0) := X"00";
@@ -169,7 +60,7 @@ begin
 	inv_interrupt <= not I_interrupt;
 	
 
-	arbiter_instance: arbiter_wb8 port map(
+	arbiter_instance: entity work.arbiter_wb8 port map(
 		ADR_I => cpu_ADR_O,
 		ACK_I => arb_ACK_I,
 		DAT_I => arb_DAT_I,
@@ -180,7 +71,7 @@ begin
 	);
 
 
-	cpu_instance: cpu_toplevel_wb8 port map(
+	cpu_instance: entity work.cpu_toplevel_wb8 port map(
 		CLK_I => pll_clk,
 		ACK_I => arb_ACK_O,
 		DAT_I => arb_DAT_O,
@@ -193,7 +84,7 @@ begin
 		I_interrupt => inv_interrupt
 	);
 	
-	leds_instance: leds_wb8 port map(
+	leds_instance: entity work.leds_wb8 port map(
 		ADR_I => cpu_ADR_O,
 		CLK_I => pll_clk,
 		DAT_I => cpu_DAT_O,
@@ -205,7 +96,7 @@ begin
 		O_leds => O_leds -- dummy_leds_O
 	);
 	
-	serial_instance: serial_wb8
+	serial_instance: entity work.serial_wb8
 	generic map(
 		CLOCKFREQ => 50000000,
 		BAUDRATE => 9600
@@ -222,7 +113,7 @@ begin
 		O_tx => O_serial_tx
 	);
 	
-	vga_instance: vga_wb8 port map(
+	vga_instance: entity work.vga_wb8 port map(
 		ADR_I => cpu_ADR_O,
 		CLK_I => pll_clk,
 		DAT_I => cpu_DAT_O,
@@ -240,7 +131,7 @@ begin
 	
 	
 	-- I/O device 0
-	ram_instance: ram_wb8 port map(
+	ram_instance: entity work.ram_wb8 port map(
 		CLK_I => pll_clk,
 		STB_I => arb_STB_O(0),
 		WE_I => cpu_WE_O,
@@ -250,12 +141,12 @@ begin
 		ACK_O => arb_ACK_I(0)
 	);
 	
-	pll_instance: wizpll port map(
+	pll_instance: entity work.wizpll port map(
 			inclk0 => I_clk,
 			c0 => pll_clk
 	);
 
-	pll_vga_instance: wizpll_vga port map(
+	pll_vga_instance: entity work.wizpll_vga port map(
 			inclk0 => I_clk,
 			c0 => pll_vga_clk
 	);

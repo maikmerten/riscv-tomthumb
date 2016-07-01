@@ -25,115 +25,6 @@ end cpu_toplevel_wb8;
 
 
 architecture Behavioral of cpu_toplevel_wb8 is
-
-	component alu
-		Port(
-			I_clk: in std_logic;
-			I_en: in std_logic;
-			I_imm: in std_logic_vector(XLEN-1 downto 0);
-			I_dataS1: in std_logic_vector(XLEN-1 downto 0);
-			I_dataS2: in std_logic_vector(XLEN-1 downto 0);
-			I_reset: in std_logic := '0';
-			I_aluop: in aluops_t;
-			I_src_op1: in op1src_t;
-			I_src_op2: in op2src_t;
-			I_enter_interrupt: in boolean := false;
-			O_busy: out std_logic := '0';
-			O_data: out std_logic_vector(XLEN-1 downto 0);
-			O_PC: out std_logic_vector(XLEN-1 downto 0);
-			O_in_interrupt: out boolean := false;
-			O_interrupt_enabled: out boolean := false;
-			O_in_trap: out boolean := false
-		);
-	end component;
-	
-	component bus_wb8
-		Port(
-			-- wired to CPU core
-			I_en: in std_logic;
-			I_op: in memops_t; -- memory opcodes
-			I_iaddr: in std_logic_vector(31 downto 0); -- instruction address, provided by PCU
-			I_daddr: in std_logic_vector(31 downto 0); -- data address, provided by ALU
-			I_data: in std_logic_vector(31 downto 0); -- data to be stored on write ops
-			I_mem_imem: in std_logic := '0'; -- denotes if instruction memory is accessed (signal from control unit)
-			O_data : out std_logic_vector(31 downto 0);
-			O_busy: out std_logic := '0';
-
-			-- wired to outside world, RAM, devices etc.
-			-- naming of signals taken from Wishbone B4 spec
-			CLK_I: in std_logic := '0';
-			ACK_I: in std_logic := '0';
-			DAT_I: in std_logic_vector(7 downto 0);
-			RST_I: in std_logic := '0';
-			ADR_O: out std_logic_vector(31 downto 0);
-			DAT_O: out std_logic_vector(7 downto 0);
-			CYC_O: out std_logic := '0';
-			STB_O: out std_logic := '0';
-			WE_O: out std_logic := '0'
-		);	
-	end component;
-	
-
-	component control
-		Port(
-			I_clk: in std_logic;
-			I_en: in std_logic;
-			I_reset: in std_logic;
-			I_regwrite: in std_logic;
-			I_alubusy: in std_logic;
-			I_membusy: in std_logic;
-			I_memop: in memops_t; -- from decoder
-			I_interrupt: in std_logic; -- from outside world
-			I_in_interrupt: in boolean; -- from ALU
-			I_interrupt_enabled: in boolean; -- from ALU
-			I_in_trap: in boolean; -- from ALU
-			-- enable signals for components
-			O_decen: out std_logic;
-			O_aluen: out std_logic;
-			O_memen: out std_logic;
-			O_regen: out std_logic;
-			-- op selection for devices
-			O_regop: out regops_t;
-			O_memop: out memops_t;
-			O_mem_imem: out std_logic; -- 1: operation on instruction memory, 0: on data memory
-			-- interrupt handling
-			O_enter_interrupt: out boolean := false
-		);	
-	end component;
-	
-	component decoder
-		Port(
-			I_clk: in std_logic;
-			I_en: in std_logic;
-			I_instr: in std_logic_vector(31 downto 0);
-			O_rs1: out std_logic_vector(4 downto 0);
-			O_rs2: out std_logic_vector(4 downto 0);
-			O_rd: out std_logic_vector(4 downto 0);
-			O_imm: out std_logic_vector(31 downto 0) := XLEN_ZERO;
-			O_regwrite : out std_logic;
-			O_memop: out memops_t;
-			O_aluop: out aluops_t;
-			O_src_op1: out op1src_t;
-			O_src_op2: out op2src_t
-		);	
-	end component;
-	
-	
-	component registers
-		Port(
-			I_clk: in std_logic;
-			I_en: in std_logic;
-			I_op: in regops_t;
-			I_selS1: in std_logic_vector(4 downto 0);
-			I_selS2: in std_logic_vector(4 downto 0);
-			I_selD: in std_logic_vector(4 downto 0);
-			I_dataAlu: in std_logic_vector(XLEN-1 downto 0);
-			I_dataMem: in std_logic_vector(XLEN-1 downto 0);
-			O_dataS1: out std_logic_vector(XLEN-1 downto 0);
-			O_dataS2: out std_logic_vector(XLEN-1 downto 0)
-		);
-	end component;
-	
 	
 	signal alu_out: std_logic_vector(XLEN-1 downto 0);
 	signal alu_memop: memops_t;
@@ -182,7 +73,7 @@ begin
 	-- rising edge
 	inv_clk <= not CLK_I;
 
-	alu_instance: alu port map(
+	alu_instance: entity work.alu port map(
 		I_clk => CLK_I,
 		I_en => ctrl_aluen,
 		I_imm => dec_imm,
@@ -201,7 +92,7 @@ begin
 		O_in_trap => alu_in_trap
 	);
 
-	bus_instance: bus_wb8 port map(
+	bus_instance: entity work.bus_wb8 port map(
 		I_en => ctrl_memen,
 		I_op => ctrl_memop,
 		I_iaddr => alu_pc,
@@ -223,7 +114,7 @@ begin
 		WE_O => WE_O
 	);	
 	
-	ctrl_instance: control port map(
+	ctrl_instance: entity work.control port map(
 		I_clk => inv_clk,	-- control runs on inverted clock!
 		I_en => en,
 		I_reset => RST_I,
@@ -246,7 +137,7 @@ begin
 	);
 	
 	
-	dec_instance: decoder port map(
+	dec_instance: entity work.decoder port map(
 		I_clk => CLK_I,
 		I_en => ctrl_decen,
 		I_instr => bus_data,
@@ -262,7 +153,7 @@ begin
 	);
 	
 	
-	reg_instance: registers port map(
+	reg_instance: entity work.registers port map(
 		I_clk => CLK_I,
 		I_en => ctrl_regen,
 		I_op => ctrl_regop,
