@@ -41,6 +41,8 @@ architecture Behavioral of sys_toplevel_wb8 is
 	signal ram_DAT_O: std_logic_vector(7 downto 0);
 	signal ram_ACK_O: std_logic := '0';
 	
+	signal reset_ctrl_reset_O: std_logic;
+	
 	signal serial_DAT_O: std_logic_vector(7 downto 0);
 	signal serial_ACK_O: std_logic := '0';
 	
@@ -53,10 +55,7 @@ architecture Behavioral of sys_toplevel_wb8 is
 
 begin
 
-
-	-- reset button is inverted
-	inv_reset <= not I_reset;
-	-- interrupt button is also inverted
+	-- interrupt button is inverted
 	inv_interrupt <= not I_interrupt;
 	
 
@@ -75,7 +74,7 @@ begin
 		CLK_I => pll_clk,
 		ACK_I => arb_ACK_O,
 		DAT_I => arb_DAT_O,
-		RST_I => inv_reset,
+		RST_I => reset_ctrl_reset_O,
 		ADR_O => cpu_ADR_O,
 		DAT_O => cpu_DAT_O,
 		CYC_O => cpu_CYC_O,
@@ -95,6 +94,14 @@ begin
 		-- control signal for onboard LEDs
 		O_leds => O_leds -- dummy_leds_O
 	);
+	
+	reset_ctrl_instance: entity work.reset_ctrl port map(
+		I_clk => pll_clk,
+		I_reset => '0',
+		I_reset_inv => I_reset,
+		O_reset => reset_ctrl_reset_O
+	);
+	
 	
 	serial_instance: entity work.serial_wb8
 	generic map(
