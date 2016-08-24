@@ -121,28 +121,24 @@ begin
 					when READ_FINISH =>
 						if ACK_I = '1' then
 							STB_O <= '0';
-						
+
 							case byte is
 								when 0 =>
-									buf(7 downto 0) := DAT_I;
 									if zeroextend = '1' then
-										O_data <= X"000000" & buf(7 downto 0);
+										buf := X"000000" & DAT_I;
 									else
-										O_data <= std_logic_vector(resize(signed(buf(7 downto 0)), O_data'length));
+										buf := std_logic_vector(resize(signed(DAT_I), buf'length));
 									end if;
 								when 1 =>
-									buf(15 downto 8) := DAT_I;
 									if zeroextend = '1' then
-										O_data <= X"0000" & buf(15 downto 0);
+										buf := X"0000" & DAT_I & buf(7 downto 0);
 									else
-										O_data <= std_logic_vector(resize(signed(buf(15 downto 0)), O_data'length));
+										buf := std_logic_vector(resize(signed(DAT_I & buf(7 downto 0)), buf'length));
 									end if;
 								when 2 =>
-									buf(23 downto 16) := DAT_I;
-									O_data <= std_logic_vector(resize(signed(buf(23 downto 0)), O_data'length));
+									buf := std_logic_vector(resize(signed(DAT_I & buf(15 downto 0)), buf'length));
 								when 3 =>
-									buf(31 downto 24) := DAT_I;
-									O_data <= buf;
+									buf := DAT_I & buf(23 downto 0);
 							end case;
 						
 							if byte < byte_target then
@@ -200,6 +196,7 @@ begin
 		
 			end if;
 		
+			O_data <= buf;
 		
 			if RST_I = '1' then
 				state := IDLE;
