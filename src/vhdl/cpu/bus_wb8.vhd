@@ -136,9 +136,9 @@ begin
 										buf := std_logic_vector(resize(signed(DAT_I & buf(7 downto 0)), buf'length));
 									end if;
 								when 2 =>
-									buf := std_logic_vector(resize(signed(DAT_I & buf(15 downto 0)), buf'length));
+									buf(23 downto 16) := DAT_I;
 								when 3 =>
-									buf := DAT_I & buf(23 downto 0);
+									buf(31 downto 24) := DAT_I;
 							end case;
 						
 							if byte < byte_target then
