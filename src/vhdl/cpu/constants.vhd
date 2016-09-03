@@ -116,6 +116,10 @@ constant MUX_BUS_ADDR_PORTS: integer := 2;
 constant MUX_BUS_ADDR_PORT_ALU: integer := 0;
 constant MUX_BUS_ADDR_PORT_PC: integer := 1;
 
+constant MUX_REG_DATA_PORTS: integer := 2;
+constant MUX_REG_DATA_PORT_ALU: integer := 0;
+constant MUX_REG_DATA_PORT_BUS: integer := 1;
+
 
 
 attribute enum_encoding : string;
@@ -135,7 +139,7 @@ type memops_t is (MEMOP_NOP, MEMOP_READB, MEMOP_READBU, MEMOP_READH, MEMOP_READH
 attribute enum_encoding of memops_t : type is "one-hot";
 
 -- commands for register unit
-type regops_t is (REGOP_READ, REGOP_WRITE_ALU, REGOP_WRITE_MEM);
+type regops_t is (REGOP_READ, REGOP_WRITE);
 attribute enum_encoding of regops_t : type is "sequential";
 
 end constants;

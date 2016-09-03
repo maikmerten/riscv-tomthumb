@@ -26,6 +26,7 @@ entity control is
 		O_regop: out regops_t;
 		O_memop: out memops_t;
 		O_mux_bus_addr_sel: out integer range 0 to MUX_BUS_ADDR_PORTS-1;
+		O_mux_reg_data_sel: out integer range 0 to MUX_REG_DATA_PORTS-1;
 		-- interrupt handling
 		O_enter_interrupt: out boolean := false
 	);
@@ -42,6 +43,7 @@ begin
 		
 			O_regop <= REGOP_READ;
 			O_mux_bus_addr_sel <= MUX_BUS_ADDR_PORT_ALU; -- address by default from ALU
+			O_mux_reg_data_sel <= MUX_REG_DATA_PORT_ALU; -- data by default from ALU
 			O_enter_interrupt <= false;
 			
 			-- only forward state machine if every component is finished
@@ -126,11 +128,13 @@ begin
 					O_memen <= '0';
 					O_regen <= '1';
 
-							
+					O_regop <= REGOP_WRITE;
 					if I_memop /= MEMOP_NOP then
-						O_regop <= REGOP_WRITE_MEM;
+						O_mux_reg_data_sel <= MUX_REG_DATA_PORT_BUS;
+						--O_regop <= REGOP_WRITE_MEM;
 					else
-						O_regop <= REGOP_WRITE_ALU;
+						O_mux_reg_data_sel <= MUX_REG_DATA_PORT_ALU;
+						--O_regop <= REGOP_WRITE_ALU;
 					end if;
 					
 					nextstate := FETCH;

@@ -43,6 +43,7 @@ architecture Behavioral of cpu_toplevel_wb8 is
 	signal ctrl_regop: regops_t;
 	signal ctrl_memop: memops_t;
 	signal ctrl_mux_bus_addr_sel: integer range 0 to MUX_BUS_ADDR_PORTS-1;
+	signal ctrl_mux_reg_data_sel: integer range 0 to MUX_REG_DATA_PORTS-1;
 	signal ctrl_reset: std_logic := '0';
 	signal ctrl_enter_interrupt: boolean := false;
 
@@ -65,6 +66,10 @@ architecture Behavioral of cpu_toplevel_wb8 is
 	signal mux_bus_addr_sel: integer range 0 to MUX_BUS_ADDR_PORTS-1;
 	signal mux_bus_addr_output: std_logic_vector(XLEN-1 downto 0);
 	
+	signal mux_reg_data_input: mux_input_t(MUX_REG_DATA_PORTS-1 downto 0)(XLEN-1 downto 0);
+	signal mux_reg_data_sel: integer range 0 to MUX_REG_DATA_PORTS-1;
+	signal mux_reg_data_output: std_logic_vector(XLEN-1 downto 0);
+	
 	signal reg_dataS1: std_logic_vector(XLEN-1 downto 0);	
 	signal reg_dataS2: std_logic_vector(XLEN-1 downto 0);
 	
@@ -80,6 +85,9 @@ begin
 	
 	mux_bus_addr_input(MUX_BUS_ADDR_PORT_ALU) <= alu_out;
 	mux_bus_addr_input(MUX_BUS_ADDR_PORT_PC) <= alu_pc;
+	
+	mux_reg_data_input(MUX_REG_DATA_PORT_ALU) <= alu_out;
+	mux_reg_data_input(MUX_REG_DATA_PORT_BUS) <= bus_data;
 
 	alu_instance: entity work.alu port map(
 		I_clk => CLK_I,
@@ -138,6 +146,7 @@ begin
 		O_regop => ctrl_regop,
 		O_memop => ctrl_memop,
 		O_mux_bus_addr_sel => ctrl_mux_bus_addr_sel,
+		O_mux_reg_data_sel => ctrl_mux_reg_data_sel,
 		O_enter_interrupt => ctrl_enter_interrupt
 	);
 	
@@ -162,6 +171,12 @@ begin
 		O_output => mux_bus_addr_output
 	);
 	
+	mux_reg_data: entity work.mux port map(
+		I_inputs => mux_reg_data_input,
+		I_sel => ctrl_mux_reg_data_sel,
+		O_output => mux_reg_data_output
+	);
+	
 	
 	reg_instance: entity work.registers port map(
 		I_clk => CLK_I,
@@ -170,8 +185,7 @@ begin
 		I_selS1 => dec_rs1,
 		I_selS2 => dec_rs2,
 		I_selD => dec_rd,
-		I_dataAlu => alu_out,
-		I_dataMem => bus_data,
+		I_data => mux_reg_data_output,
 		O_dataS1 => reg_dataS1,
 		O_dataS2 => reg_dataS2
 	);
