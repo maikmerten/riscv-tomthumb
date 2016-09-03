@@ -15,7 +15,11 @@ architecture Behavior of sys_wb8_tb is
 		Port(
 			I_clk: in std_logic;
 			I_reset: in std_logic := '0';
-			O_leds: out std_logic_vector(7 downto 0) := X"00"
+			I_serial_rx: in std_logic;
+			I_interrupt: in std_logic;
+			O_leds: out std_logic_vector(7 downto 0) := X"00";
+			O_serial_tx: out std_logic;
+			O_vga_vsync, O_vga_hsync, O_vga_r, O_vga_g, O_vga_b: out std_logic := '0'
 		);
 	end component;
 
@@ -23,7 +27,10 @@ architecture Behavior of sys_wb8_tb is
 	constant I_clk_period : time := 10 ns;
 	signal I_clk : std_logic := '0';
 	signal I_reset: std_logic := '0';
+	signal I_serial_rx, O_serial_tx: std_logic := '0';
+	signal I_interrupt: std_logic := '0';
 	signal O_leds: std_logic_vector(7 downto 0) := X"00";
+	signal O_vga_vsync, O_vga_hsync, O_vga_r, O_vga_g, O_vga_b: std_logic := '0';
 
 
 begin
@@ -32,7 +39,15 @@ begin
 	uut: sys_toplevel_wb8 port map(
 		I_clk => I_clk,
 		I_reset => I_reset,
-		O_leds => O_leds
+		I_serial_rx => I_serial_rx,
+		I_interrupt => I_interrupt,
+		O_leds => O_leds,
+		O_serial_tx => O_serial_tx,
+		O_vga_vsync => O_vga_vsync,
+		O_vga_hsync => O_vga_hsync,
+		O_vga_r => O_vga_r,
+		O_vga_g => O_vga_g,
+		O_vga_b => O_vga_b
 	);
 
 	proc_clock: process
