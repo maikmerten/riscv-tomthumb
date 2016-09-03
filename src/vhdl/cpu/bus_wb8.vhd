@@ -10,10 +10,8 @@ entity bus_wb8 is
 		-- wired to CPU core
 		I_en: in std_logic;
 		I_op: in memops_t; -- memory opcodes
-		I_iaddr: in std_logic_vector(31 downto 0); -- instruction address, provided by PCU
-		I_daddr: in std_logic_vector(31 downto 0); -- data address, provided by ALU
+		I_addr: in std_logic_vector(31 downto 0); -- address
 		I_data: in std_logic_vector(31 downto 0); -- data to be stored on write ops
-		I_mem_imem: in std_logic := '0'; -- denotes if instruction memory is accessed (signal from control unit)
 		O_data : out std_logic_vector(31 downto 0);
 		O_busy: out std_logic := '0';
 
@@ -42,7 +40,7 @@ begin
 		variable adr: std_logic_vector(31 downto 0) := X"00000000";
 		variable buf: std_logic_vector(31 downto 0) := X"00000000";
 		variable byte, byte_target: integer range 0 to 3;
-		variable imem, zeroextend: std_logic := '0';
+		variable zeroextend: std_logic := '0';
 	begin
 
 		if rising_edge(CLK_I) then
@@ -54,8 +52,8 @@ begin
 				if state = IDLE then
 					O_busy <= '1';
 					zeroextend := '0';
-					imem := I_mem_imem;
 					byte := 0; -- start at byte 0
+					adr := I_addr; -- FIXME: control unit only keeps address mux selection stable for one clock, which is why we memorize the address here
 				
 					case I_op is
 						when MEMOP_READW =>
@@ -99,13 +97,6 @@ begin
 				end if;
 			
 				-- compute memory address
-				if imem = '1' then
-					-- read from instruction memory
-					adr := I_iaddr;
-				else
-					-- read from data memory/devices
-					adr := I_daddr;
-				end if;
 				ADR_O <= std_logic_vector(unsigned(adr) + byte);
 			
 				-----------------------------------

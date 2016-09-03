@@ -4,6 +4,7 @@ use IEEE.NUMERIC_STD.ALL;
 
 library work;
 use work.constants.all;
+use work.mux_types_pkg.all;
 
 entity cpu_toplevel_wb8 is
 	Port(
@@ -41,7 +42,7 @@ architecture Behavioral of cpu_toplevel_wb8 is
 	signal ctrl_regen: std_logic := '0';
 	signal ctrl_regop: regops_t;
 	signal ctrl_memop: memops_t;
-	signal ctrl_mem_imem: std_logic := '0';
+	signal ctrl_mux_bus_addr_sel: integer range 0 to MUX_BUS_ADDR_PORTS-1;
 	signal ctrl_reset: std_logic := '0';
 	signal ctrl_enter_interrupt: boolean := false;
 
@@ -60,6 +61,10 @@ architecture Behavioral of cpu_toplevel_wb8 is
 	signal bus_busy: std_logic := '0';
 	signal bus_data: std_logic_vector(XLEN-1 downto 0);
 
+	signal mux_bus_addr_input: mux_input_t(MUX_BUS_ADDR_PORTS-1 downto 0)(XLEN-1 downto 0);
+	signal mux_bus_addr_sel: integer range 0 to MUX_BUS_ADDR_PORTS-1;
+	signal mux_bus_addr_output: std_logic_vector(XLEN-1 downto 0);
+	
 	signal reg_dataS1: std_logic_vector(XLEN-1 downto 0);	
 	signal reg_dataS2: std_logic_vector(XLEN-1 downto 0);
 	
@@ -72,6 +77,9 @@ begin
 	-- makes control unit work on falling edge, all other units on
 	-- rising edge
 	inv_clk <= not CLK_I;
+	
+	mux_bus_addr_input(MUX_BUS_ADDR_PORT_ALU) <= alu_out;
+	mux_bus_addr_input(MUX_BUS_ADDR_PORT_PC) <= alu_pc;
 
 	alu_instance: entity work.alu port map(
 		I_clk => CLK_I,
@@ -95,10 +103,8 @@ begin
 	bus_instance: entity work.bus_wb8 port map(
 		I_en => ctrl_memen,
 		I_op => ctrl_memop,
-		I_iaddr => alu_pc,
-		I_daddr => alu_out,
+		I_addr => mux_bus_addr_output,
 		I_data => reg_dataS2,
-		I_mem_imem => ctrl_mem_imem,
 		O_data => bus_data,
 		O_busy => bus_busy,
 		
@@ -132,7 +138,7 @@ begin
 		O_regen => ctrl_regen,
 		O_regop => ctrl_regop,
 		O_memop => ctrl_memop,
-		O_mem_imem => ctrl_mem_imem,
+		O_mux_bus_addr_sel => ctrl_mux_bus_addr_sel,
 		O_enter_interrupt => ctrl_enter_interrupt
 	);
 	
@@ -150,6 +156,12 @@ begin
 		O_aluop => dec_aluop,
 		O_src_op1 => dec_src_op1,
 		O_src_op2 => dec_src_op2
+	);
+	
+	mux_bus_addr: entity work.mux port map(
+		I_inputs => mux_bus_addr_input,
+		I_sel => ctrl_mux_bus_addr_sel,
+		O_output => mux_bus_addr_output
 	);
 	
 	

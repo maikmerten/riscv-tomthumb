@@ -26,7 +26,7 @@ entity control is
 		-- op selection for devices
 		O_regop: out regops_t;
 		O_memop: out memops_t;
-		O_mem_imem: out std_logic; -- 1: operation on instruction memory, 0: on data memory
+		O_mux_bus_addr_sel: out integer range 0 to MUX_BUS_ADDR_PORTS-1;
 		-- interrupt handling
 		O_enter_interrupt: out boolean := false
 	);
@@ -42,7 +42,7 @@ begin
 		if rising_edge(I_clk) and I_en = '1' then
 		
 			O_regop <= REGOP_READ;
-			O_mem_imem <= '0';
+			O_mux_bus_addr_sel <= MUX_BUS_ADDR_PORT_ALU; -- address by default from ALU
 			O_enter_interrupt <= false;
 		
 			case state is
@@ -68,7 +68,7 @@ begin
 							O_memen <= '1';
 							O_regen <= '0';
 					
-							O_mem_imem <= '1'; -- load from instruction memory
+							O_mux_bus_addr_sel <= MUX_BUS_ADDR_PORT_PC; -- load from instruction memory
 							O_memop <= MEMOP_READW;
 				
 							state <= DECODE;

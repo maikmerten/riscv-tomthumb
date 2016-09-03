@@ -110,6 +110,13 @@ constant R29:	std_logic_vector(4 downto 0) := "11101";
 constant R30:	std_logic_vector(4 downto 0) := "11110";
 constant R31:	std_logic_vector(4 downto 0) := "11111";
 
+-- muxer ports
+
+constant MUX_BUS_ADDR_PORTS: integer := 2;
+constant MUX_BUS_ADDR_PORT_ALU: integer := 0;
+constant MUX_BUS_ADDR_PORT_PC: integer := 1;
+
+
 
 attribute enum_encoding : string;
 

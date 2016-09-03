@@ -14,10 +14,8 @@ architecture Behavior of bus_wb8_tb is
 		Port(
 			I_en: in std_logic;
 			I_op: in memops_t; -- memory opcodes
-			I_iaddr: in std_logic_vector(31 downto 0); -- instruction address, provided by PCU
-			I_daddr: in std_logic_vector(31 downto 0); -- data address, provided by ALU
+			I_addr: in std_logic_vector(31 downto 0); -- address
 			I_data: in std_logic_vector(31 downto 0); -- data to be stored on write ops
-			I_mem_imem: in std_logic := '0'; -- denotes if instruction memory is accessed (signal from control unit)
 			O_data : out std_logic_vector(31 downto 0);
 			O_busy: out std_logic := '0';
 
@@ -37,10 +35,8 @@ architecture Behavior of bus_wb8_tb is
 
 	signal I_en: std_logic;
 	signal I_op: memops_t; -- memory opcodes
-	signal I_iaddr: std_logic_vector(31 downto 0); -- instruction address, provided by PCU
-	signal I_daddr: std_logic_vector(31 downto 0); -- data address, provided by ALU
+	signal I_addr: std_logic_vector(31 downto 0); -- address
 	signal I_data: std_logic_vector(31 downto 0); -- data to be stored on write ops
-	signal I_mem_imem: std_logic := '0'; -- denotes if instruction memory is accessed (signal from control unit)
 	signal O_data: std_logic_vector(31 downto 0);
 	signal O_busy: std_logic := '0';
 	signal O_clk: std_logic := '0';
@@ -61,10 +57,8 @@ begin
 	uut: bus_wb8 port map(
 		I_en => I_en,
 		I_op => I_op,
-		I_iaddr => I_iaddr,
-		I_daddr => I_daddr,
+		I_addr => I_addr,
 		I_data => I_data,
-		I_mem_imem => I_mem_imem,
 		O_data => O_data,
 		O_busy => O_busy,
 
@@ -94,8 +88,7 @@ begin
 		-- test read of words
 		wait until falling_edge(CLK_I);
 		I_en <= '1';
-		I_daddr <= X"CAFE0000";
-		I_mem_imem <= '0';
+		I_addr <= X"CAFE0000";
 		I_op <= MEMOP_READW;
 		DAT_I <= X"CC";
 		ACK_I <= '1';
@@ -106,8 +99,7 @@ begin
 		-- test read of half words and sign extension (here: sign set)
 		wait until falling_edge(CLK_I);
 		I_en <= '1';
-		I_daddr <= X"CAFE0000";
-		I_mem_imem <= '0';
+		I_addr <= X"CAFE0000";
 		I_op <= MEMOP_READH;
 		DAT_I <= X"CC";
 		ACK_I <= '1';
@@ -118,8 +110,7 @@ begin
 		-- test read of half words and sign extension (here sign not set)
 		wait until falling_edge(CLK_I);
 		I_en <= '1';
-		I_daddr <= X"CAFE0000";
-		I_mem_imem <= '0';
+		I_addr <= X"CAFE0000";
 		I_op <= MEMOP_READH;
 		DAT_I <= X"0F";
 		ACK_I <= '1';
@@ -130,8 +121,7 @@ begin
 		-- test read of byte and sign extension (here: sign set)
 		wait until falling_edge(CLK_I);
 		I_en <= '1';
-		I_daddr <= X"CAFE0000";
-		I_mem_imem <= '0';
+		I_addr <= X"CAFE0000";
 		I_op <= MEMOP_READB;
 		DAT_I <= X"CC";
 		ACK_I <= '1';
@@ -142,8 +132,7 @@ begin
 		-- test read of byte and sign extension (here sign not set)
 		wait until falling_edge(CLK_I);
 		I_en <= '1';
-		I_daddr <= X"CAFE0000";
-		I_mem_imem <= '0';
+		I_addr <= X"CAFE0000";
 		I_op <= MEMOP_READB;
 		DAT_I <= X"0F";
 		ACK_I <= '1';
@@ -155,8 +144,7 @@ begin
 		wait until falling_edge(CLK_I);
 		I_en <= '1';
 		I_data <= X"CAFEBABE";
-		I_daddr <= X"CAFE0000";
-		I_mem_imem <= '0';
+		I_addr <= X"CAFE0000";
 		I_op <= MEMOP_WRITEW;
 		ACK_I <= '1';
 		wait until falling_edge(O_busy);
@@ -167,8 +155,7 @@ begin
 		wait until falling_edge(CLK_I);
 		I_en <= '1';
 		I_data <= X"CAFEBABE";
-		I_daddr <= X"CAFE0000";
-		I_mem_imem <= '0';
+		I_addr <= X"CAFE0000";
 		I_op <= MEMOP_WRITEH;
 		ACK_I <= '1';
 		wait until falling_edge(O_busy);
@@ -179,8 +166,7 @@ begin
 		wait until falling_edge(CLK_I);
 		I_en <= '1';
 		I_data <= X"CAFEBABE";
-		I_daddr <= X"CAFE0000";
-		I_mem_imem <= '0';
+		I_addr <= X"CAFE0000";
 		I_op <= MEMOP_WRITEB;
 		ACK_I <= '1';
 		wait until falling_edge(O_busy);
