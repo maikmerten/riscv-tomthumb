@@ -11,8 +11,7 @@ entity control is
 		I_en: in std_logic;
 		I_reset: in std_logic;
 		I_regwrite: in std_logic;
-		I_alubusy: in std_logic;
-		I_membusy: in std_logic;
+		I_busy: in boolean;
 		I_memop: in memops_t; -- from decoder
 		I_interrupt: in std_logic; -- from outside world
 		I_in_interrupt: in boolean; -- from ALU
@@ -45,8 +44,8 @@ begin
 			O_mux_bus_addr_sel <= MUX_BUS_ADDR_PORT_ALU; -- address by default from ALU
 			O_enter_interrupt <= false;
 			
-			
-			if I_alubusy = '0' and I_membusy = '0' then
+			-- only forward state machine if every component is finished
+			if not I_busy then
 				state := nextstate;
 			end if;
 			

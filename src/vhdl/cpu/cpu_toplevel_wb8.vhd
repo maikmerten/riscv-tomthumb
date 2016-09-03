@@ -126,8 +126,7 @@ begin
 		I_reset => RST_I,
 		I_memop => dec_memop,
 		I_regwrite => dec_regwrite,
-		I_alubusy => alu_busy,
-		I_membusy => bus_busy,
+		I_busy => (alu_busy = '1' or bus_busy = '1'),
 		I_interrupt => I_interrupt,
 		I_in_interrupt => alu_in_interrupt,
 		I_interrupt_enabled => alu_interrupt_enabled,
@@ -141,7 +140,6 @@ begin
 		O_mux_bus_addr_sel => ctrl_mux_bus_addr_sel,
 		O_enter_interrupt => ctrl_enter_interrupt
 	);
-	
 	
 	dec_instance: entity work.decoder port map(
 		I_clk => CLK_I,
