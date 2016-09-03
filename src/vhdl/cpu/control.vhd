@@ -17,6 +17,8 @@ entity control is
 		I_in_interrupt: in boolean; -- from ALU
 		I_interrupt_enabled: in boolean; -- from ALU
 		I_in_trap: in boolean; -- from ALU
+		I_src_op1: in op1src_t; -- TODO: generate signals for ALU input muxer in control
+		I_src_op2: in op2src_t;	-- TODO: generate signals for ALU input muxer in control	
 		-- enable signals for components
 		O_decen: out std_logic;
 		O_aluen: out std_logic;
@@ -25,6 +27,10 @@ entity control is
 		-- op selection for devices
 		O_regop: out regops_t;
 		O_memop: out memops_t;
+		-- muxer selection signals
+		-- TODO: currently the ALU data muxers are directly controlled by the decoder
+		O_mux_alu_dat1_sel: out integer range 0 to MUX_ALU_DAT1_PORTS-1;
+		O_mux_alu_dat2_sel: out integer range 0 to MUX_ALU_DAT2_PORTS-1;
 		O_mux_bus_addr_sel: out integer range 0 to MUX_BUS_ADDR_PORTS-1;
 		O_mux_reg_data_sel: out integer range 0 to MUX_REG_DATA_PORTS-1;
 		-- interrupt handling
@@ -35,6 +41,23 @@ end control;
 architecture Behavioral of control is
 	type control_states is (RESET, FETCH, DECODE, REGREAD, EXECUTE, MEMORY, REGWRITE);
 begin
+
+	-- process to pass through selectors for ALU data input muxes from decoder
+	-- in future versions the control unit will generate these signals, not the decoder
+	process(I_src_op1, I_src_op2)
+	begin
+		case I_src_op1 is
+			when SRC_S1 => O_mux_alu_dat1_sel <= MUX_ALU_DAT1_PORT_S1;
+			when SRC_PC => O_mux_alu_dat1_sel <= MUX_ALU_DAT1_PORT_PC;
+		end case;
+
+		case I_src_op2 is
+			when SRC_S2 => O_mux_alu_dat2_sel <= MUX_ALU_DAT2_PORT_S2;
+			when SRC_IMM => O_mux_alu_dat2_sel <= MUX_ALU_DAT2_PORT_IMM;
+		end case;
+	end process;
+
+
 	process(I_clk, I_en, I_reset, I_regwrite, I_busy, I_memop, I_interrupt, I_in_interrupt, I_interrupt_enabled, I_in_trap)
 		variable nextstate,state: control_states := RESET;
 		variable in_interrupt, in_trap: boolean := false;
@@ -48,6 +71,17 @@ begin
 			O_mux_bus_addr_sel <= MUX_BUS_ADDR_PORT_ALU; -- address by default from ALU
 			O_mux_reg_data_sel <= MUX_REG_DATA_PORT_ALU; -- data by default from ALU
 			O_enter_interrupt <= false;
+			
+--			-- select sources for operands
+--			case I_src_op1 is
+--				when SRC_S1 => O_mux_alu_dat1_sel <= MUX_ALU_DAT1_PORT_S1;
+--				when SRC_PC => O_mux_alu_dat1_sel <= MUX_ALU_DAT1_PORT_PC;
+--			end case;
+--
+--			case I_src_op2 is
+--				when SRC_S2 => O_mux_alu_dat2_sel <= MUX_ALU_DAT2_PORT_S2;
+--				when SRC_IMM => O_mux_alu_dat2_sel <= MUX_ALU_DAT2_PORT_IMM;
+--			end case;
 			
 			-- only forward state machine if every component is finished
 			if not I_busy then
@@ -134,10 +168,8 @@ begin
 					O_regop <= REGOP_WRITE;
 					if I_memop /= MEMOP_NOP then
 						O_mux_reg_data_sel <= MUX_REG_DATA_PORT_BUS;
-						--O_regop <= REGOP_WRITE_MEM;
 					else
 						O_mux_reg_data_sel <= MUX_REG_DATA_PORT_ALU;
-						--O_regop <= REGOP_WRITE_ALU;
 					end if;
 					
 					nextstate := FETCH;

@@ -14,8 +14,6 @@ entity alu is
 		I_dataS2: in std_logic_vector(XLEN-1 downto 0);
 		I_reset: in std_logic := '0';
 		I_aluop: in aluops_t;
-		I_src_op1: in op1src_t;
-		I_src_op2: in op2src_t;
 		I_enter_interrupt: in boolean := false;
 		O_busy: out std_logic := '0';
 		O_data: out std_logic_vector(XLEN-1 downto 0);
@@ -37,7 +35,7 @@ architecture Behavioral of alu is
 	signal pc_rtt: std_logic_vector(XLEN-1 downto 0) := RESET_VECTOR;
 	signal in_trap: boolean := false;
 begin
-	process(I_clk)
+	process(I_clk, I_en, I_imm, I_dataS1, I_dataS2, I_reset, I_aluop, I_enter_interrupt)
 		variable newpc,pc4,pcimm,tmpval,op1,op2,sum: std_logic_vector(XLEN-1 downto 0);
 		variable shiftcnt: std_logic_vector(4 downto 0);
 		variable busy: boolean := false;
@@ -71,17 +69,9 @@ begin
 				pc <= INTERRUPT_VECTOR; -- interrupt service routine expected there
 				in_interrupt <= true;
 			end if;
-
-			-- select sources for operands
-			case I_src_op1 is
-				when SRC_S1 => op1 := I_dataS1;
-				when SRC_PC => op1 := pc;
-			end case;
-
-			case I_src_op2 is
-				when SRC_S2 => op2 := I_dataS2;
-				when SRC_IMM => op2 := I_imm;
-			end case;
+			
+			op1 := I_dataS1;
+			op2 := I_dataS2;
 			
 			
 			-- main business here
