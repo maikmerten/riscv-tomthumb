@@ -72,17 +72,6 @@ begin
 			O_mux_reg_data_sel <= MUX_REG_DATA_PORT_ALU; -- data by default from ALU
 			O_enter_interrupt <= false;
 			
---			-- select sources for operands
---			case I_src_op1 is
---				when SRC_S1 => O_mux_alu_dat1_sel <= MUX_ALU_DAT1_PORT_S1;
---				when SRC_PC => O_mux_alu_dat1_sel <= MUX_ALU_DAT1_PORT_PC;
---			end case;
---
---			case I_src_op2 is
---				when SRC_S2 => O_mux_alu_dat2_sel <= MUX_ALU_DAT2_PORT_S2;
---				when SRC_IMM => O_mux_alu_dat2_sel <= MUX_ALU_DAT2_PORT_IMM;
---			end case;
-			
 			-- only forward state machine if every component is finished
 			if not I_busy then
 				state := nextstate;
