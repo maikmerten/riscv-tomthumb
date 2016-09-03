@@ -57,8 +57,6 @@ architecture Behavioral of cpu_toplevel_wb8 is
 	signal dec_src_op1: op1src_t;
 	signal dec_src_op2: op2src_t;
 		
-	signal inv_clk: std_logic;
-	
 	signal bus_busy: std_logic := '0';
 	signal bus_data: std_logic_vector(XLEN-1 downto 0);
 
@@ -76,12 +74,6 @@ architecture Behavioral of cpu_toplevel_wb8 is
 	signal en: std_logic := '1';
 
 begin
-	
-	-- inverted clock for control unit to ensure that all control
-	-- signals arive in time for the controlled units. Effectively
-	-- makes control unit work on falling edge, all other units on
-	-- rising edge
-	inv_clk <= not CLK_I;
 	
 	mux_bus_addr_input(MUX_BUS_ADDR_PORT_ALU) <= alu_out;
 	mux_bus_addr_input(MUX_BUS_ADDR_PORT_PC) <= alu_pc;
@@ -129,7 +121,7 @@ begin
 	);	
 	
 	ctrl_instance: entity work.control port map(
-		I_clk => inv_clk,	-- control runs on inverted clock!
+		I_clk => CLK_I,
 		I_en => en,
 		I_reset => RST_I,
 		I_memop => dec_memop,

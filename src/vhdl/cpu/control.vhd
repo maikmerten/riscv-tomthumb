@@ -35,11 +35,14 @@ end control;
 architecture Behavioral of control is
 	type control_states is (RESET, FETCH, DECODE, REGREAD, EXECUTE, MEMORY, REGWRITE);
 begin
-	process(I_clk)
+	process(I_clk, I_en, I_reset, I_regwrite, I_busy, I_memop, I_interrupt, I_in_interrupt, I_interrupt_enabled, I_in_trap)
 		variable nextstate,state: control_states := RESET;
 		variable in_interrupt, in_trap: boolean := false;
 	begin
-		if rising_edge(I_clk) and I_en = '1' then
+	
+		-- run on falling edite to ensure that all control signals arrive in time
+		-- for the controlled units, which run on the rising edge
+		if falling_edge(I_clk) and I_en = '1' then
 		
 			O_regop <= REGOP_READ;
 			O_mux_bus_addr_sel <= MUX_BUS_ADDR_PORT_ALU; -- address by default from ALU
