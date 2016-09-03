@@ -3,7 +3,7 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 package mux_types_pkg is
-        type mux_input_t is array(natural range <>) of std_logic_vector;
+	type mux_input_t is array(natural range <>) of std_logic_vector;
 end package;
 
 
@@ -30,11 +30,5 @@ end mux;
 
 architecture Behavioral of mux is
 begin
-	--process(I_inputs, I_sel)
-	--begin
-	
-		O_output <= I_inputs(I_sel);
-	
-	--end process;
-
+	O_output <= I_inputs(I_sel);
 end Behavioral;

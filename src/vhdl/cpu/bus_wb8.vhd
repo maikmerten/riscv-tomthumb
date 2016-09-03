@@ -37,7 +37,6 @@ architecture Behavioral of bus_wb8 is
 begin
 	process(CLK_I)
 		variable state: control_states := IDLE;
-		variable adr: std_logic_vector(31 downto 0) := X"00000000";
 		variable buf: std_logic_vector(31 downto 0) := X"00000000";
 		variable byte, byte_target: integer range 0 to 3;
 		variable zeroextend: std_logic := '0';
@@ -53,7 +52,6 @@ begin
 					O_busy <= '1';
 					zeroextend := '0';
 					byte := 0; -- start at byte 0
-					adr := I_addr; -- FIXME: control unit only keeps address mux selection stable for one clock, which is why we memorize the address here
 				
 					case I_op is
 						when MEMOP_READW =>
@@ -97,7 +95,7 @@ begin
 				end if;
 			
 				-- compute memory address
-				ADR_O <= std_logic_vector(unsigned(adr) + byte);
+				ADR_O <= std_logic_vector(unsigned(I_addr) + byte);
 			
 				-----------------------------------
 				-- execute read or write operations
