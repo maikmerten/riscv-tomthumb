@@ -20,7 +20,10 @@ entity alu is
 		O_PC: out std_logic_vector(XLEN-1 downto 0);
 		O_in_interrupt: out boolean := false;
 		O_interrupt_enabled: out boolean := false;
-		O_in_trap: out boolean := false
+		O_in_trap: out boolean := false;
+		O_lt: out boolean := false;
+		O_ltu: out boolean := false;
+		O_zero: out boolean := false
 	);
 end alu;
 
@@ -36,7 +39,7 @@ architecture Behavioral of alu is
 	signal in_trap: boolean := false;
 begin
 	process(I_clk, I_en, I_imm, I_dataS1, I_dataS2, I_reset, I_aluop, I_enter_interrupt)
-		variable newpc,pc4,pcimm,tmpval,op1,op2,sum: std_logic_vector(XLEN-1 downto 0);
+		variable newpc,pc4,pcimm,tmpval,op1,op2,sum,result: std_logic_vector(XLEN-1 downto 0);
 		variable shiftcnt: std_logic_vector(4 downto 0);
 		variable busy: boolean := false;
 		variable do_reset: boolean := false;
@@ -90,34 +93,37 @@ begin
 				lt := signed(op1) < signed(op2);
 				ltu := unsigned(op1) < unsigned(op2);
 				sum := std_logic_vector(unsigned(op1) + unsigned(op2));
+				
+				O_lt <= lt;
+				O_ltu <= ltu;
 
 				case I_aluop is
 		
 					when ALU_ADD =>
-						O_data <= sum;
+						result := sum;
 				
 					when ALU_SUB =>
-						O_data <= std_logic_vector(unsigned(op1) - unsigned(op2));
+						result := std_logic_vector(unsigned(op1) - unsigned(op2));
 					
 					when ALU_AND =>
-						O_data <= op1 and op2;
+						result := op1 and op2;
 				
 					when ALU_OR =>
-						O_data <= op1 or op2;
+						result := op1 or op2;
 					
 					when ALU_XOR =>
-						O_data <= op1 xor op2;
+						result := op1 xor op2;
 				
 					when ALU_SLT =>
-						O_data <= XLEN_ZERO;
+						result := XLEN_ZERO;
 						if lt then
-							O_data(0) <= '1';
+							result(0) := '1';
 						end if;
 				
 					when ALU_SLTU =>
-						O_data <= XLEN_ZERO;
+						result := XLEN_ZERO;
 						if ltu then
-							O_data(0) <= '1';
+							result(0) := '1';
 						end if;
 				
 					when ALU_SLL | ALU_SRL | ALU_SRA =>
@@ -134,7 +140,7 @@ begin
 							shiftcnt := std_logic_vector(unsigned(shiftcnt) - 1);
 						else
 							busy := false;
-							O_data <= tmpval;
+							result := tmpval;
 						end if;
 					
 					when ALU_BEQ =>
@@ -169,11 +175,11 @@ begin
 
 					when ALU_JAL =>
 						newpc := pcimm;
-						O_data <= pc4;
+						result := pc4;
 				
 					when ALU_JALR =>
 						newpc := sum(31 downto 1) & '0';
-						O_data <= pc4;
+						result := pc4;
 						
 					when ALU_ENABLEI =>
 						interrupt_enabled <= true;
@@ -198,17 +204,20 @@ begin
 					
 					when ALU_GETTRAPRET =>
 						-- retrieve return address for trap
-						O_data <= pc_rtt;
+						result := pc_rtt;
 			
 				end case;
 			
-			
+		
 				if busy then
 					O_busy <= '1';
 				else
 					O_busy <= '0';
 					pc <= newpc;
 				end if;
+				
+				O_data <= result;
+				O_zero <= result = X"00000000";
 		
 			end if;
 		end if;

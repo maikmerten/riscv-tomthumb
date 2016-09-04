@@ -10,27 +10,6 @@ end alu_tb;
 
 architecture Behavior of alu_tb is
 
-
-	component alu
-		Port(
-			I_clk: in std_logic;
-			I_en: in std_logic;
-			I_imm: in std_logic_vector(XLEN-1 downto 0);
-			I_dataS1: in std_logic_vector(XLEN-1 downto 0);
-			I_dataS2: in std_logic_vector(XLEN-1 downto 0);
-			I_reset: in std_logic := '0';
-			I_aluop: in aluops_t;
-			I_enter_interrupt: in boolean := false;
-			O_busy: out std_logic := '0';
-			O_data: out std_logic_vector(XLEN-1 downto 0);
-			O_PC: out std_logic_vector(XLEN-1 downto 0);
-			O_in_interrupt: out boolean := false;
-			O_interrupt_enabled: out boolean := false;
-			O_in_trap: out boolean := false
-		);
-	end component;
-
-
 	constant I_clk_period : time := 10 ns;
 	signal I_clk : std_logic := '0';
 	signal I_en: std_logic := '0';
@@ -46,11 +25,12 @@ architecture Behavior of alu_tb is
 	signal O_in_interrupt: boolean := false;
 	signal O_interrupt_enabled: boolean := false;
 	signal O_in_trap: boolean := false;
+	signal O_lt, O_ltu, O_zero: boolean := false;
 
 begin
 
 	-- instantiate unit under test
-	uut: alu port map(
+	uut: entity work.alu port map(
 		I_clk => I_clk,
 		I_en => I_en,
 		I_imm => I_imm,
@@ -64,7 +44,10 @@ begin
 		O_PC => O_PC,
 		O_in_interrupt => O_in_interrupt,
 		O_interrupt_enabled => O_interrupt_enabled,
-		O_in_trap => O_in_trap
+		O_in_trap => O_in_trap,
+		O_lt => O_lt,
+		O_ltu => O_ltu,
+		O_zero => O_zero
 	);
 
 	proc_clock: process
@@ -157,7 +140,30 @@ begin
 		wait until falling_edge(O_busy);
 		assert O_data = X"0F000000" report "wrong output value" severity failure;
 		
+		-- test flags
+		
+		wait until falling_edge(I_clk);
+		I_dataS1 <= X"F0000000";
+		I_dataS2 <= X"0000000F";
+		I_aluop <= ALU_SUB;
+		wait until falling_edge(I_clk);
+		assert O_data = X"EFFFFFF1" report "wrong output value" severity failure;
+		assert O_lt = true report "wrong output value" severity failure;
+		assert O_ltu = false report "wrong output value" severity failure;
+		assert O_zero = false report "wrong output value" severity failure;
+		
 
+		wait until falling_edge(I_clk);
+		I_dataS1 <= X"F0000000";
+		I_dataS2 <= X"F0000000";
+		I_aluop <= ALU_SUB;
+		wait until falling_edge(I_clk);
+		assert O_data = X"00000000" report "wrong output value" severity failure;
+		assert O_lt = false report "wrong output value" severity failure;
+		assert O_ltu = false report "wrong output value" severity failure;
+		assert O_zero = true report "wrong output value" severity failure;
+		
+		
 		wait for I_clk_period;		
 		assert false report "end of simulation" severity failure;
 	

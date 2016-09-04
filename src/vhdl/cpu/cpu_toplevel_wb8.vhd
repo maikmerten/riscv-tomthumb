@@ -34,6 +34,9 @@ architecture Behavioral of cpu_toplevel_wb8 is
 	signal alu_in_interrupt: boolean := false;
 	signal alu_interrupt_enabled: boolean := false;
 	signal alu_in_trap: boolean := false;
+	signal alu_lt: boolean := false;
+	signal alu_ltu: boolean := false;
+	signal alu_zero: boolean := false;
 	
 	signal ctrl_pcuen: std_logic := '0';
 	signal ctrl_decen: std_logic := '0';
@@ -90,12 +93,15 @@ begin
 	
 	mux_alu_dat2_input(MUX_ALU_DAT2_PORT_S2) <= reg_dataS2;
 	mux_alu_dat2_input(MUX_ALU_DAT2_PORT_IMM) <= dec_imm;
+	mux_alu_dat2_input(MUX_ALU_DAT2_PORT_INSTLEN) <= X"00000004";
 	
 	mux_bus_addr_input(MUX_BUS_ADDR_PORT_ALU) <= alu_out;
 	mux_bus_addr_input(MUX_BUS_ADDR_PORT_PC) <= alu_pc;
 	
 	mux_reg_data_input(MUX_REG_DATA_PORT_ALU) <= alu_out;
 	mux_reg_data_input(MUX_REG_DATA_PORT_BUS) <= bus_data;
+	mux_reg_data_input(MUX_REG_DATA_PORT_IMM) <= dec_imm;
+	mux_reg_data_input(MUX_REG_DATA_PORT_PC) <= alu_pc;
 
 
 	alu_instance: entity work.alu port map(
@@ -112,7 +118,10 @@ begin
 		O_PC => alu_pc,
 		O_in_interrupt => alu_in_interrupt,
 		O_interrupt_enabled => alu_interrupt_enabled,
-		O_in_trap => alu_in_trap
+		O_in_trap => alu_in_trap,
+		O_lt => alu_lt,
+		O_ltu => alu_ltu,
+		O_zero => alu_zero
 	);
 
 	bus_instance: entity work.bus_wb8 port map(
@@ -176,25 +185,41 @@ begin
 		O_src_op2 => dec_src_op2
 	);
 	
-	mux_alu_dat1: entity work.mux port map(
+	mux_alu_dat1: entity work.mux
+	generic map(
+		PORTS => MUX_ALU_DAT1_PORTS
+	)
+	port map(
 		I_inputs => mux_alu_dat1_input,
 		I_sel => ctrl_mux_alu_dat1_sel,
 		O_output => mux_alu_dat1_output
 	);
 	
-	mux_alu_dat2: entity work.mux port map(
+	mux_alu_dat2: entity work.mux
+	generic map(
+		PORTS => MUX_ALU_DAT2_PORTS
+	)
+	port map(
 		I_inputs => mux_alu_dat2_input,
 		I_sel => ctrl_mux_alu_dat2_sel,
 		O_output => mux_alu_dat2_output
 	);
 	
-	mux_bus_addr: entity work.mux port map(
+	mux_bus_addr: entity work.mux
+	generic map(
+		PORTS => MUX_BUS_ADDR_PORTS
+	)
+	port map(
 		I_inputs => mux_bus_addr_input,
 		I_sel => ctrl_mux_bus_addr_sel,
 		O_output => mux_bus_addr_output
 	);
 	
-	mux_reg_data: entity work.mux port map(
+	mux_reg_data: entity work.mux
+	generic map(
+		PORTS => MUX_REG_DATA_PORTS
+	)
+	port map(
 		I_inputs => mux_reg_data_input,
 		I_sel => ctrl_mux_reg_data_sel,
 		O_output => mux_reg_data_output

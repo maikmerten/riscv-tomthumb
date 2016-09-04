@@ -116,17 +116,20 @@ constant MUX_BUS_ADDR_PORTS: integer := 2;
 constant MUX_BUS_ADDR_PORT_ALU: integer := 0;
 constant MUX_BUS_ADDR_PORT_PC: integer := 1;
 
-constant MUX_REG_DATA_PORTS: integer := 2;
+constant MUX_REG_DATA_PORTS: integer := 4;
 constant MUX_REG_DATA_PORT_ALU: integer := 0;
 constant MUX_REG_DATA_PORT_BUS: integer := 1;
+constant MUX_REG_DATA_PORT_IMM: integer := 2;
+constant MUX_REG_DATA_PORT_PC: integer := 3;
 
 constant MUX_ALU_DAT1_PORTS: integer := 2;
 constant MUX_ALU_DAT1_PORT_S1: integer := 0;
 constant MUX_ALU_DAT1_PORT_PC: integer := 1;
 
-constant MUX_ALU_DAT2_PORTS: integer := 2;
+constant MUX_ALU_DAT2_PORTS: integer := 3;
 constant MUX_ALU_DAT2_PORT_S2: integer := 0;
 constant MUX_ALU_DAT2_PORT_IMM: integer := 1;
+constant MUX_ALU_DAT2_PORT_INSTLEN: integer := 2;
 
 
 attribute enum_encoding : string;
