@@ -148,6 +148,9 @@ attribute enum_encoding of op2src_t : type is "sequential";
 type memops_t is (MEMOP_NOP, MEMOP_READB, MEMOP_READBU, MEMOP_READH, MEMOP_READHU, MEMOP_READW, MEMOP_WRITEB, MEMOP_WRITEH, MEMOP_WRITEW);
 attribute enum_encoding of memops_t : type is "one-hot";
 
+-- commands for program counter unit (PCU)
+type pcuops_t is (PCU_OUTPC, PCU_SETPC, PCU_OUTTRAPRET, PCU_ENTERTRAP, PCU_RETTRAP, PCU_OUTINTRET, PCU_ENTERINT, PCU_RETINT);
+
 -- commands for register unit
 type regops_t is (REGOP_READ, REGOP_WRITE);
 attribute enum_encoding of regops_t : type is "sequential";

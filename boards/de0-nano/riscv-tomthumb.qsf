@@ -117,6 +117,12 @@ set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to I_interrupt
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to I_clk
 set_global_assignment -name VHDL_INPUT_VERSION VHDL_2008
 set_global_assignment -name VHDL_SHOW_LMF_MAPPING_MESSAGES OFF
+set_global_assignment -name EDA_TEST_BENCH_FILE ../../src/vhdl/cpu/alu_tb.vhd -section_id alu_tb
+set_global_assignment -name EDA_TEST_BENCH_FILE ../../src/vhdl/cpu/decoder_tb.vhd -section_id decoder_tb
+set_global_assignment -name EDA_TEST_BENCH_FILE ../../src/vhdl/cpu/bus_wb8_tb.vhd -section_id bus_wb8_tb
+set_global_assignment -name EDA_TEST_BENCH_FILE ../../src/vhdl/ram/bus_ram_toplevel_tb.vhd -section_id bus_ram_toplevel_tb
+set_global_assignment -name EDA_TEST_BENCH_FILE ../../src/vhdl/sys_wb8_tb.vhd -section_id sys_wb8_tb
+set_global_assignment -name EDA_TEST_BENCH_FILE ../../src/vhdl/vga/vga_wb8_tb.vhd -section_id vga_wb8_tb
 set_global_assignment -name SDC_FILE "riscv-tomthumb.out.sdc"
 set_global_assignment -name VHDL_FILE vhdl/wizpll/wizpll.vhd
 set_global_assignment -name VHDL_FILE vhdl/wizpll/wizpll_vga.vhd
@@ -133,6 +139,7 @@ set_global_assignment -name VHDL_FILE ../../src/vhdl/cpu/cpu_toplevel_wb8.vhd
 set_global_assignment -name VHDL_FILE ../../src/vhdl/cpu/decoder.vhd
 set_global_assignment -name VHDL_FILE ../../src/vhdl/cpu/decoder_tb.vhd
 set_global_assignment -name VHDL_FILE ../../src/vhdl/cpu/mux.vhd
+set_global_assignment -name VHDL_FILE ../../src/vhdl/cpu/pcu.vhd
 set_global_assignment -name VHDL_FILE ../../src/vhdl/cpu/registers.vhd
 set_global_assignment -name VHDL_FILE ../../src/vhdl/leds/leds_wb8.vhd
 set_global_assignment -name VHDL_FILE ../../src/vhdl/ram/ram_wb8_init.vhd
@@ -147,10 +154,4 @@ set_global_assignment -name VHDL_FILE ../../src/vhdl/vga/vga_wb8_toplevel.vhd
 set_global_assignment -name VHDL_FILE ../../src/vhdl/vga/vga_font_init.vhd
 set_global_assignment -name VHDL_FILE ../../src/vhdl/vga/vga_text_init.vhd
 set_global_assignment -name VHDL_FILE ../../src/vhdl/vga/vga_color_init.vhd
-set_global_assignment -name EDA_TEST_BENCH_FILE ../../src/vhdl/cpu/alu_tb.vhd -section_id alu_tb
-set_global_assignment -name EDA_TEST_BENCH_FILE ../../src/vhdl/cpu/decoder_tb.vhd -section_id decoder_tb
-set_global_assignment -name EDA_TEST_BENCH_FILE ../../src/vhdl/cpu/bus_wb8_tb.vhd -section_id bus_wb8_tb
-set_global_assignment -name EDA_TEST_BENCH_FILE ../../src/vhdl/ram/bus_ram_toplevel_tb.vhd -section_id bus_ram_toplevel_tb
-set_global_assignment -name EDA_TEST_BENCH_FILE ../../src/vhdl/sys_wb8_tb.vhd -section_id sys_wb8_tb
-set_global_assignment -name EDA_TEST_BENCH_FILE ../../src/vhdl/vga/vga_wb8_tb.vhd -section_id vga_wb8_tb
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
