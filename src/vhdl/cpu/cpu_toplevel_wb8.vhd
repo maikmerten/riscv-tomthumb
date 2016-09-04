@@ -62,6 +62,9 @@ architecture Behavioral of cpu_toplevel_wb8 is
 	signal dec_aluop: aluops_t;
 	signal dec_src_op1: op1src_t;
 	signal dec_src_op2: op2src_t;
+	signal dec_opcode: std_logic_vector(4 downto 0);
+	signal dec_funct3: std_logic_vector(2 downto 0);
+	signal dec_funct7: std_logic_vector(6 downto 0);
 		
 	signal bus_busy: std_logic := '0';
 	signal bus_data: std_logic_vector(XLEN-1 downto 0);
@@ -160,6 +163,9 @@ begin
 		I_in_trap => alu_in_trap,
 		I_src_op1 => dec_src_op1,
 		I_src_op2 => dec_src_op2,
+		I_opcode => dec_opcode,
+		I_funct3 => dec_funct3,
+		I_funct7 => dec_funct7,
 		O_decen => ctrl_decen,
 		O_aluen => ctrl_aluen,
 		O_memen => ctrl_memen,
@@ -185,7 +191,10 @@ begin
 		O_memop => dec_memop,
 		O_aluop => dec_aluop,
 		O_src_op1 => dec_src_op1,
-		O_src_op2 => dec_src_op2
+		O_src_op2 => dec_src_op2,
+		O_opcode => dec_opcode,
+		O_funct3 => dec_funct3,
+		O_funct7 => dec_funct7
 	);
 	
 	mux_alu_dat1: entity work.mux

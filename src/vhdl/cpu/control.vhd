@@ -18,7 +18,10 @@ entity control is
 		I_interrupt_enabled: in boolean; -- from ALU
 		I_in_trap: in boolean; -- from ALU
 		I_src_op1: in op1src_t; -- TODO: generate signals for ALU input muxer in control
-		I_src_op2: in op2src_t;	-- TODO: generate signals for ALU input muxer in control	
+		I_src_op2: in op2src_t;	-- TODO: generate signals for ALU input muxer in control
+		I_opcode: in std_logic_vector(4 downto 0);
+		I_funct3: in std_logic_vector(2 downto 0);
+		I_funct7: in std_logic_vector(6 downto 0);
 		-- enable signals for components
 		O_decen: out std_logic;
 		O_aluen: out std_logic;

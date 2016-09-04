@@ -10,25 +10,6 @@ end decoder_tb;
 
 architecture Behavior of decoder_tb is
 
-
-	component decoder
-		Port(
-			I_clk: in std_logic;
-			I_en: in std_logic;
-			I_instr: in std_logic_vector(31 downto 0);
-			O_rs1: out std_logic_vector(4 downto 0);
-			O_rs2: out std_logic_vector(4 downto 0);
-			O_rd: out std_logic_vector(4 downto 0);
-			O_imm: out std_logic_vector(31 downto 0) := XLEN_ZERO;
-			O_regwrite : out std_logic;
-			O_memop: out memops_t;
-			O_aluop: out aluops_t;
-			O_src_op1: out op1src_t;
-			O_src_op2: out op2src_t
-		);
-	end component;
-
-
 	constant I_clk_period : time := 10 ns;
 	signal I_clk : std_logic := '0';
 	signal I_en: std_logic := '1';
@@ -42,12 +23,15 @@ architecture Behavior of decoder_tb is
 	signal O_aluop: aluops_t;
 	signal O_src_op1: op1src_t;
 	signal O_src_op2: op2src_t;
+	signal O_opcode: std_logic_vector(4 downto 0);
+	signal O_funct3: std_logic_vector(2 downto 0);
+	signal O_funct7: std_logic_vector(6 downto 0);
 	
 
 begin
 
 	-- instantiate unit under test
-	uut: decoder port map(
+	uut: entity work.decoder port map(
 		I_clk => I_clk,
 		I_en => I_en,
 		I_instr => I_instr,
@@ -59,7 +43,10 @@ begin
 		O_memop => O_memop,
 		O_aluop => O_aluop,
 		O_src_op1 => O_src_op1,
-		O_src_op2 => O_src_op2
+		O_src_op2 => O_src_op2,
+		O_opcode => O_opcode,
+		O_funct3 => O_funct3,
+		O_funct7 => O_funct7
 	);
 
 	proc_clock: process

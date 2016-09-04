@@ -18,7 +18,10 @@ entity decoder is
 		O_memop: out memops_t;
 		O_aluop: out aluops_t;
 		O_src_op1: out op1src_t;
-		O_src_op2: out op2src_t
+		O_src_op2: out op2src_t;
+		O_opcode: out std_logic_vector(4 downto 0);
+		O_funct3: out std_logic_vector(2 downto 0);
+		O_funct7: out std_logic_vector(6 downto 0)
 	);
 end decoder;
 
@@ -40,6 +43,10 @@ begin
 			O_rs2 <= I_instr(24 downto 20);
 			O_rd <= I_instr(11 downto 7);
 			O_regwrite <= '1';
+			
+			O_opcode <= opcode;
+			O_funct3 <= funct3;
+			O_funct7 <= funct7;
 
 			-- extract immediate value
 			case opcode is
