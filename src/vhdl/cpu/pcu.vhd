@@ -6,7 +6,7 @@ library work;
 use work.constants.all;
 
 entity pcu is
-	Port(
+	port(
 		I_clk: in std_logic;
 		I_en: in std_logic;
 		I_reset: in std_logic;
@@ -36,13 +36,15 @@ begin
 					-- load and output program counter value
 					when PCU_SETPC =>
 						pc <= I_data(XLEN-1 downto 1);
-						O_data <= pc & '0';
+						O_data <= I_data(XLEN-1 downto 1) & '0';
 						
 					-- output trap return address
 					when PCU_OUTTRAPRET =>
 						O_data <= ret_trap & '0';
 					
 					-- output trap vector and save return address
+					-- NOTE: a return address needs to be computed beforehand
+					-- for that, the ALU will compute (PC + INSTR_LEN)
 					when PCU_ENTERTRAP =>
 						ret_trap <= I_data(XLEN-1 downto 1);
 						pc <= TRAP_VECTOR(XLEN-1 downto 1);
@@ -58,8 +60,9 @@ begin
 						O_data <= ret_interrupt & '0';
 						
 					-- output interrupt vector and save return address
+					-- Note: the return address is the original pc value, unlike traps
 					when PCU_ENTERINT =>
-						ret_interrupt <= I_data(XLEN-1 downto 1);
+						ret_interrupt <= pc;
 						pc <= INTERRUPT_VECTOR(XLEN-1 downto 1);
 						O_data <= INTERRUPT_VECTOR(XLEN-1 downto 1) & '0';
 					
