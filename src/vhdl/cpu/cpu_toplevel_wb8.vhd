@@ -46,8 +46,6 @@ architecture Behavioral of cpu_toplevel_wb8 is
 	signal ctrl_mux_alu_dat2_sel: integer range 0 to MUX_ALU_DAT2_PORTS-1;
 	signal ctrl_mux_bus_addr_sel: integer range 0 to MUX_BUS_ADDR_PORTS-1;
 	signal ctrl_mux_reg_data_sel: integer range 0 to MUX_REG_DATA_PORTS-1;
-	signal ctrl_reset: std_logic := '0';
-	signal ctrl_enter_interrupt: boolean := false;
 
 	signal dec_rs1: std_logic_vector(4 downto 0);
 	signal dec_rs2: std_logic_vector(4 downto 0);
@@ -159,8 +157,7 @@ begin
 		O_mux_alu_dat1_sel => ctrl_mux_alu_dat1_sel,
 		O_mux_alu_dat2_sel => ctrl_mux_alu_dat2_sel,
 		O_mux_bus_addr_sel => ctrl_mux_bus_addr_sel,
-		O_mux_reg_data_sel => ctrl_mux_reg_data_sel,
-		O_enter_interrupt => ctrl_enter_interrupt
+		O_mux_reg_data_sel => ctrl_mux_reg_data_sel
 	);
 	
 	dec_instance: entity work.decoder port map(

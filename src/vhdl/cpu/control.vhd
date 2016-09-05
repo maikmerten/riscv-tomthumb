@@ -34,9 +34,7 @@ entity control is
 		O_mux_alu_dat1_sel: out integer range 0 to MUX_ALU_DAT1_PORTS-1;
 		O_mux_alu_dat2_sel: out integer range 0 to MUX_ALU_DAT2_PORTS-1;
 		O_mux_bus_addr_sel: out integer range 0 to MUX_BUS_ADDR_PORTS-1;
-		O_mux_reg_data_sel: out integer range 0 to MUX_REG_DATA_PORTS-1;
-		-- interrupt handling
-		O_enter_interrupt: out boolean := false
+		O_mux_reg_data_sel: out integer range 0 to MUX_REG_DATA_PORTS-1
 	);
 end control;
 
@@ -70,7 +68,6 @@ begin
 			O_mux_alu_dat2_sel <= MUX_ALU_DAT2_PORT_S2;
 			O_mux_bus_addr_sel <= MUX_BUS_ADDR_PORT_ALU; -- address by default from ALU
 			O_mux_reg_data_sel <= MUX_REG_DATA_PORT_ALU; -- data by default from ALU
-			O_enter_interrupt <= false;
 			
 			-- only forward state machine if every component is finished
 			if not I_busy then

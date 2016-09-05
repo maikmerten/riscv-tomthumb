@@ -29,7 +29,7 @@ begin
 		variable tmpval,sum,result: std_logic_vector(XLEN-1 downto 0);
 		variable shiftcnt: std_logic_vector(4 downto 0);
 		variable busy: boolean := false;
-		variable eq,lt,ltu: boolean;
+		variable lt,ltu: boolean;
 	begin
 	
 	
@@ -43,8 +43,7 @@ begin
 				-------------------------------
 				-- ALU core operations
 				-------------------------------
-			
-				eq := op1 = op2;
+
 				lt := signed(op1) < signed(op2);
 				ltu := unsigned(op1) < unsigned(op2);
 				sum := std_logic_vector(unsigned(op1) + unsigned(op2));
