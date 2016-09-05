@@ -30,7 +30,6 @@ architecture Behavioral of cpu_toplevel_wb8 is
 	signal alu_out: std_logic_vector(XLEN-1 downto 0);
 	signal alu_memop: memops_t;
 	signal alu_busy: std_logic := '0';
-	signal alu_pc: std_logic_vector(XLEN-1 downto 0);
 	signal alu_in_interrupt: boolean := false;
 	signal alu_interrupt_enabled: boolean := false;
 	signal alu_in_trap: boolean := false;
@@ -43,6 +42,7 @@ architecture Behavioral of cpu_toplevel_wb8 is
 	signal ctrl_aluen: std_logic := '0';
 	signal ctrl_memen: std_logic := '0';
 	signal ctrl_regen: std_logic := '0';
+	signal ctrl_aluop: aluops_t;
 	signal ctrl_pcuop: pcuops_t;
 	signal ctrl_regop: regops_t;
 	signal ctrl_memop: memops_t;
@@ -95,19 +95,19 @@ architecture Behavioral of cpu_toplevel_wb8 is
 begin
 	
 	mux_alu_dat1_input(MUX_ALU_DAT1_PORT_S1) <= reg_dataS1;
-	mux_alu_dat1_input(MUX_ALU_DAT1_PORT_PC) <= alu_pc;
+	mux_alu_dat1_input(MUX_ALU_DAT1_PORT_PC) <= pcu_out;
 	
 	mux_alu_dat2_input(MUX_ALU_DAT2_PORT_S2) <= reg_dataS2;
 	mux_alu_dat2_input(MUX_ALU_DAT2_PORT_IMM) <= dec_imm;
 	mux_alu_dat2_input(MUX_ALU_DAT2_PORT_INSTLEN) <= X"00000004";
 	
 	mux_bus_addr_input(MUX_BUS_ADDR_PORT_ALU) <= alu_out;
-	mux_bus_addr_input(MUX_BUS_ADDR_PORT_PC) <= alu_pc;
+	mux_bus_addr_input(MUX_BUS_ADDR_PORT_PC) <= pcu_out;
 	
 	mux_reg_data_input(MUX_REG_DATA_PORT_ALU) <= alu_out;
 	mux_reg_data_input(MUX_REG_DATA_PORT_BUS) <= bus_data;
 	mux_reg_data_input(MUX_REG_DATA_PORT_IMM) <= dec_imm;
-	mux_reg_data_input(MUX_REG_DATA_PORT_PC) <= alu_pc;
+	mux_reg_data_input(MUX_REG_DATA_PORT_PC) <= pcu_out;
 
 
 	alu_instance: entity work.alu port map(
@@ -117,11 +117,10 @@ begin
 		I_reset => RST_I,
 		I_dataS1 => mux_alu_dat1_output,
 		I_dataS2 => mux_alu_dat2_output,
-		I_aluop => dec_aluop,
+		I_aluop => ctrl_aluop,
 		I_enter_interrupt => ctrl_enter_interrupt,
 		O_busy => alu_busy,
 		O_data => alu_out,
-		O_PC => alu_pc,
 		O_in_interrupt => alu_in_interrupt,
 		O_interrupt_enabled => alu_interrupt_enabled,
 		O_in_trap => alu_in_trap,
@@ -154,22 +153,20 @@ begin
 		I_clk => CLK_I,
 		I_en => en,
 		I_reset => RST_I,
-		I_memop => dec_memop,
-		I_regwrite => dec_regwrite,
 		I_busy => (alu_busy = '1' or bus_busy = '1'),
 		I_interrupt => I_interrupt,
-		I_in_interrupt => alu_in_interrupt,
-		I_interrupt_enabled => alu_interrupt_enabled,
-		I_in_trap => alu_in_trap,
-		I_src_op1 => dec_src_op1,
-		I_src_op2 => dec_src_op2,
 		I_opcode => dec_opcode,
 		I_funct3 => dec_funct3,
 		I_funct7 => dec_funct7,
+		I_lt => alu_lt,
+		I_ltu => alu_ltu,
+		I_zero => alu_zero,
 		O_decen => ctrl_decen,
 		O_aluen => ctrl_aluen,
 		O_memen => ctrl_memen,
+		O_pcuen => ctrl_pcuen,
 		O_regen => ctrl_regen,
+		O_aluop => ctrl_aluop,
 		O_regop => ctrl_regop,
 		O_memop => ctrl_memop,
 		O_pcuop => ctrl_pcuop,
