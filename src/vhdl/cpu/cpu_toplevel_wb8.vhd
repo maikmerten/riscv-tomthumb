@@ -53,15 +53,10 @@ architecture Behavioral of cpu_toplevel_wb8 is
 	signal ctrl_reset: std_logic := '0';
 	signal ctrl_enter_interrupt: boolean := false;
 
-	signal dec_memop: memops_t;
 	signal dec_rs1: std_logic_vector(4 downto 0);
 	signal dec_rs2: std_logic_vector(4 downto 0);
 	signal dec_rd: std_logic_vector(4 downto 0);
-	signal dec_regwrite: std_logic := '0';
 	signal dec_imm: std_logic_vector(XLEN-1 downto 0);
-	signal dec_aluop: aluops_t;
-	signal dec_src_op1: op1src_t;
-	signal dec_src_op2: op2src_t;
 	signal dec_opcode: std_logic_vector(4 downto 0);
 	signal dec_funct3: std_logic_vector(2 downto 0);
 	signal dec_funct7: std_logic_vector(6 downto 0);
@@ -185,11 +180,6 @@ begin
 		O_rs2 => dec_rs2,
 		O_rd => dec_rd,
 		O_imm => dec_imm,
-		O_regwrite => dec_regwrite,
-		O_memop => dec_memop,
-		O_aluop => dec_aluop,
-		O_src_op1 => dec_src_op1,
-		O_src_op2 => dec_src_op2,
 		O_opcode => dec_opcode,
 		O_funct3 => dec_funct3,
 		O_funct7 => dec_funct7
