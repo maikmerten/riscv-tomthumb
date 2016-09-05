@@ -33,18 +33,12 @@ begin
 	uut: entity work.alu port map(
 		I_clk => I_clk,
 		I_en => I_en,
-		I_imm => I_imm,
 		I_dataS1 => I_dataS1,
 		I_dataS2 => I_dataS2,
 		I_reset => I_reset,
 		I_aluop => I_aluop,
-		I_enter_interrupt => I_enter_interrupt,
 		O_busy => O_busy,
 		O_data => O_data,
-		O_PC => O_PC,
-		O_in_interrupt => O_in_interrupt,
-		O_interrupt_enabled => O_interrupt_enabled,
-		O_in_trap => O_in_trap,
 		O_lt => O_lt,
 		O_ltu => O_ltu,
 		O_zero => O_zero

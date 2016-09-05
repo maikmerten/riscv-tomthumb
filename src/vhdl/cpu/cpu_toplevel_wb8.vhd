@@ -28,11 +28,7 @@ end cpu_toplevel_wb8;
 architecture Behavioral of cpu_toplevel_wb8 is
 	
 	signal alu_out: std_logic_vector(XLEN-1 downto 0);
-	signal alu_memop: memops_t;
 	signal alu_busy: std_logic := '0';
-	signal alu_in_interrupt: boolean := false;
-	signal alu_interrupt_enabled: boolean := false;
-	signal alu_in_trap: boolean := false;
 	signal alu_lt: boolean := false;
 	signal alu_ltu: boolean := false;
 	signal alu_zero: boolean := false;
@@ -108,17 +104,12 @@ begin
 	alu_instance: entity work.alu port map(
 		I_clk => CLK_I,
 		I_en => ctrl_aluen,
-		I_imm => dec_imm, -- TODO: remove later on, still neede for PC computation
 		I_reset => RST_I,
 		I_dataS1 => mux_alu_dat1_output,
 		I_dataS2 => mux_alu_dat2_output,
 		I_aluop => ctrl_aluop,
-		I_enter_interrupt => ctrl_enter_interrupt,
 		O_busy => alu_busy,
 		O_data => alu_out,
-		O_in_interrupt => alu_in_interrupt,
-		O_interrupt_enabled => alu_interrupt_enabled,
-		O_in_trap => alu_in_trap,
 		O_lt => alu_lt,
 		O_ltu => alu_ltu,
 		O_zero => alu_zero

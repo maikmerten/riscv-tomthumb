@@ -9,18 +9,12 @@ entity alu is
 	Port(
 		I_clk: in std_logic;
 		I_en: in std_logic;
-		I_imm: in std_logic_vector(XLEN-1 downto 0);
 		I_dataS1: in std_logic_vector(XLEN-1 downto 0);
 		I_dataS2: in std_logic_vector(XLEN-1 downto 0);
 		I_reset: in std_logic := '0';
 		I_aluop: in aluops_t;
-		I_enter_interrupt: in boolean := false;
 		O_busy: out std_logic := '0';
 		O_data: out std_logic_vector(XLEN-1 downto 0);
-		O_PC: out std_logic_vector(XLEN-1 downto 0);
-		O_in_interrupt: out boolean := false;
-		O_interrupt_enabled: out boolean := false;
-		O_in_trap: out boolean := false;
 		O_lt: out boolean := false;
 		O_ltu: out boolean := false;
 		O_zero: out boolean := false
@@ -28,63 +22,24 @@ entity alu is
 end alu;
 
 architecture Behavioral of alu is
-	-- program counter
-	signal pc: std_logic_vector(XLEN-1 downto 0) := RESET_VECTOR;
-	-- program counter copy (used for "return from interrupt (rti)" instruction)
-	signal pc_rti: std_logic_vector(XLEN-1 downto 0) := RESET_VECTOR;
-	signal in_interrupt: boolean := false;
-	signal interrupt_enabled: boolean := false;
-	-- program counter copy (used for "return from trap (rtt)" instruction)
-	signal pc_rtt: std_logic_vector(XLEN-1 downto 0) := RESET_VECTOR;
-	signal in_trap: boolean := false;
+	alias op1 is I_dataS1(XLEN-1 downto 0);
+	alias op2 is I_dataS2(XLEN-1 downto 0);
 begin
-	process(I_clk, I_en, I_imm, I_dataS1, I_dataS2, I_reset, I_aluop, I_enter_interrupt)
-		variable newpc,pc4,pcimm,tmpval,op1,op2,sum,result: std_logic_vector(XLEN-1 downto 0);
+	process(I_clk, I_en, I_dataS1, I_dataS2, I_reset, I_aluop)
+		variable tmpval,sum,result: std_logic_vector(XLEN-1 downto 0);
 		variable shiftcnt: std_logic_vector(4 downto 0);
 		variable busy: boolean := false;
-		variable do_reset: boolean := false;
 		variable eq,lt,ltu: boolean;
 	begin
 	
-		O_pc <= pc;
-		O_in_interrupt <= in_interrupt;
-		O_interrupt_enabled <= interrupt_enabled;
-		O_in_trap <= in_trap;
 	
 		if rising_edge(I_clk) then
 
 			-- check for reset
 			if(I_reset = '1') then
-				do_reset := true;
 				busy := false;
-				pc <= RESET_VECTOR;
-				interrupt_enabled <= false;
-				in_interrupt <= false;
-				in_trap <= false;
-			else
-				do_reset := false;
-			end if;
+			elsif I_en = '1' then
 			
-			-- check if we enter an interrupt handler and need to
-			-- save the pc and output the interrupt vector
-			if(I_enter_interrupt) then
-				pc_rti <= pc;
-				pc <= INTERRUPT_VECTOR; -- interrupt service routine expected there
-				in_interrupt <= true;
-			end if;
-			
-			op1 := I_dataS1;
-			op2 := I_dataS2;
-			
-			
-			-- main business here
-			if I_en = '1' and not do_reset and not I_enter_interrupt then
-			
-				-- PC = PC + 4
-				pc4 := std_logic_vector(unsigned(pc) + 4);
-				pcimm := std_logic_vector(unsigned(pc) + unsigned(I_imm));
-				newpc := pc4;
-		
 				-------------------------------
 				-- ALU core operations
 				-------------------------------
@@ -142,70 +97,7 @@ begin
 							busy := false;
 							result := tmpval;
 						end if;
-					
-					when ALU_BEQ =>
-						if eq then
-							newpc := pcimm;
-						end if;
-					
-					when ALU_BNE =>
-						if not eq then
-							newpc := pcimm;
-						end if;
-					
-					when ALU_BLT =>
-						if lt then
-							newpc := pcimm;
-						end if;
-					
-					when ALU_BGE =>
-						if not lt then
-							newpc := pcimm;
-						end if;
-
-					when ALU_BLTU =>
-						if ltu then
-							newpc := pcimm;
-						end if;
-					
-					when ALU_BGEU =>
-						if not ltu then
-							newpc := pcimm;
-						end if;
-
-					when ALU_JAL =>
-						newpc := pcimm;
-						result := pc4;
-				
-					when ALU_JALR =>
-						newpc := sum(31 downto 1) & '0';
-						result := pc4;
-						
-					when ALU_ENABLEI =>
-						interrupt_enabled <= true;
-						
-					when ALU_DISABLEI =>
-						interrupt_enabled <= false;
-
-					when ALU_RTI =>
-						newpc := pc_rti;
-						in_interrupt <= false;
-					
-					when ALU_TRAP =>
-						-- enter a trap
-						newpc := TRAP_VECTOR;
-						pc_rtt <= pc4; -- return to succeeding instruction
-						in_trap <= true;
-						
-					when ALU_RTT =>
-						-- return from trap
-						newpc := pc_rtt; -- jump to trap retrun address
-						in_trap <= false;
-					
-					when ALU_GETTRAPRET =>
-						-- retrieve return address for trap
-						result := pc_rtt;
-			
+		
 				end case;
 			
 		
@@ -213,7 +105,6 @@ begin
 					O_busy <= '1';
 				else
 					O_busy <= '0';
-					pc <= newpc;
 				end if;
 				
 				O_data <= result;
