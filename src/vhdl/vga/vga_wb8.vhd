@@ -99,7 +99,7 @@ begin
 		variable font_row: std_logic_vector(2 downto 0);
 		variable font_pixel: std_logic;
 		
-		variable text_col: integer range 0 to (text_cols - 1);
+		variable text_col: integer range 0 to text_cols;
 		variable text_offset: integer range 0 to (text_cols * text_rows);
 		variable text_color_addr: integer range 0 to (ram_text'length - 1);
 
@@ -146,7 +146,7 @@ begin
 				if col_vec(3 downto 0) = "1110" then
 					-- increment 2 clocks early, so there's time to fetch the
 					-- text character and then the font byte
-					text_col := text_col + 1;
+						text_col := text_col + 1;
 				end if;
 				
 			else
