@@ -172,6 +172,7 @@ begin
 		O_regen => ctrl_regen,
 		O_regop => ctrl_regop,
 		O_memop => ctrl_memop,
+		O_pcuop => ctrl_pcuop,
 		O_mux_alu_dat1_sel => ctrl_mux_alu_dat1_sel,
 		O_mux_alu_dat2_sel => ctrl_mux_alu_dat2_sel,
 		O_mux_bus_addr_sel => ctrl_mux_bus_addr_sel,

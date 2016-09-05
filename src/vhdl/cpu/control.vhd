@@ -30,6 +30,7 @@ entity control is
 		-- op selection for devices
 		O_regop: out regops_t;
 		O_memop: out memops_t;
+		O_pcuop: out pcuops_t;
 		-- muxer selection signals
 		-- TODO: currently the ALU data muxers are directly controlled by the decoder
 		O_mux_alu_dat1_sel: out integer range 0 to MUX_ALU_DAT1_PORTS-1;
