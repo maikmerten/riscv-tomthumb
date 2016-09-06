@@ -62,7 +62,7 @@ begin
 		
 			O_aluop <= ALU_ADD;
 			O_busop <= BUS_READB;
-			O_pcuop <= PCU_OUTPC;
+			O_pcuop <= PCU_SETPC;
 			O_regop <= REGOP_READ;
 			
 			
