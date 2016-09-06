@@ -57,6 +57,8 @@ begin
 				
 				O_lt <= lt;
 				O_ltu <= ltu;
+				
+				result := XLEN_ZERO;
 
 				case I_aluop is
 		
@@ -76,13 +78,11 @@ begin
 						result := eor;
 				
 					when ALU_SLT =>
-						result := XLEN_ZERO;
 						if lt then
 							result(0) := '1';
 						end if;
 				
 					when ALU_SLTU =>
-						result := XLEN_ZERO;
 						if ltu then
 							result(0) := '1';
 						end if;
