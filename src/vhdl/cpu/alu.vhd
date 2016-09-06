@@ -26,7 +26,8 @@ architecture Behavioral of alu is
 	alias op2 is I_dataS2(XLEN-1 downto 0);
 begin
 	process(I_clk, I_en, I_dataS1, I_dataS2, I_reset, I_aluop)
-		variable tmpval,sum,result: std_logic_vector(XLEN-1 downto 0);
+		variable tmpval,sum,eor,result: std_logic_vector(XLEN-1 downto 0);
+		variable sub: std_logic_vector(XLEN downto 0); -- one additional bit to detect underflow
 		variable shiftcnt: std_logic_vector(4 downto 0);
 		variable busy: boolean := false;
 		variable lt,ltu: boolean;
@@ -44,9 +45,15 @@ begin
 				-- ALU core operations
 				-------------------------------
 
-				lt := signed(op1) < signed(op2);
-				ltu := unsigned(op1) < unsigned(op2);
 				sum := std_logic_vector(unsigned(op1) + unsigned(op2));
+				sub := std_logic_vector(unsigned('0' & op1) - unsigned('0' & op2));
+				
+				-- unsigned comparision: simply look at underflow bit
+				ltu := sub(XLEN) = '1';
+				
+				-- signed comparison: xor underflow bit with xored sign bits
+				eor := op1 xor op2;
+				lt := (sub(XLEN) xor eor(XLEN-1)) = '1';
 				
 				O_lt <= lt;
 				O_ltu <= ltu;
@@ -57,7 +64,7 @@ begin
 						result := sum;
 				
 					when ALU_SUB =>
-						result := std_logic_vector(unsigned(op1) - unsigned(op2));
+						result := sub(XLEN-1 downto 0);
 					
 					when ALU_AND =>
 						result := op1 and op2;
@@ -66,7 +73,7 @@ begin
 						result := op1 or op2;
 					
 					when ALU_XOR =>
-						result := op1 xor op2;
+						result := eor;
 				
 					when ALU_SLT =>
 						result := XLEN_ZERO;

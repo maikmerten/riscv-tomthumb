@@ -156,6 +156,17 @@ begin
 		assert O_lt = false report "wrong output value" severity failure;
 		assert O_ltu = false report "wrong output value" severity failure;
 		assert O_zero = true report "wrong output value" severity failure;
+
+
+		wait until falling_edge(I_clk);
+		I_dataS1 <= X"00000001";
+		I_dataS2 <= X"00000002";
+		I_aluop <= ALU_SUB;
+		wait until falling_edge(I_clk);
+		assert O_data = X"FFFFFFFF" report "wrong output value" severity failure;
+		assert O_lt = true report "wrong output value" severity failure;
+		assert O_ltu = true report "wrong output value" severity failure;
+		assert O_zero = false report "wrong output value" severity failure;
 		
 		
 		wait for I_clk_period;		
