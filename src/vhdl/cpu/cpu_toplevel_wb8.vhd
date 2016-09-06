@@ -36,12 +36,12 @@ architecture Behavioral of cpu_toplevel_wb8 is
 	signal ctrl_pcuen: std_logic := '0';
 	signal ctrl_decen: std_logic := '0';
 	signal ctrl_aluen: std_logic := '0';
-	signal ctrl_memen: std_logic := '0';
+	signal ctrl_busen: std_logic := '0';
 	signal ctrl_regen: std_logic := '0';
 	signal ctrl_aluop: aluops_t;
+	signal ctrl_busop: busops_t;
 	signal ctrl_pcuop: pcuops_t;
 	signal ctrl_regop: regops_t;
-	signal ctrl_memop: memops_t;
 	signal ctrl_mux_alu_dat1_sel: integer range 0 to MUX_ALU_DAT1_PORTS-1;
 	signal ctrl_mux_alu_dat2_sel: integer range 0 to MUX_ALU_DAT2_PORTS-1;
 	signal ctrl_mux_bus_addr_sel: integer range 0 to MUX_BUS_ADDR_PORTS-1;
@@ -115,8 +115,8 @@ begin
 	);
 
 	bus_instance: entity work.bus_wb8 port map(
-		I_en => ctrl_memen,
-		I_op => ctrl_memop,
+		I_en => ctrl_busen,
+		I_op => ctrl_busop,
 		I_addr => mux_bus_addr_output,
 		I_data => reg_dataS2,
 		O_data => bus_data,
@@ -148,12 +148,12 @@ begin
 		I_zero => alu_zero,
 		O_decen => ctrl_decen,
 		O_aluen => ctrl_aluen,
-		O_memen => ctrl_memen,
+		O_busen => ctrl_busen,
 		O_pcuen => ctrl_pcuen,
 		O_regen => ctrl_regen,
 		O_aluop => ctrl_aluop,
+		O_busop => ctrl_busop,
 		O_regop => ctrl_regop,
-		O_memop => ctrl_memop,
 		O_pcuop => ctrl_pcuop,
 		O_mux_alu_dat1_sel => ctrl_mux_alu_dat1_sel,
 		O_mux_alu_dat2_sel => ctrl_mux_alu_dat2_sel,

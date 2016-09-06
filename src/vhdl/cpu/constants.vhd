@@ -139,9 +139,9 @@ type aluops_t is (ALU_ADD, ALU_SUB, ALU_AND, ALU_OR, ALU_XOR, ALU_SLT, ALU_SLTU,
 --attribute enum_encoding of aluops_t : type is "sequential";
 
 
--- commands for MEM unit
-type memops_t is (MEMOP_NOP, MEMOP_READB, MEMOP_READBU, MEMOP_READH, MEMOP_READHU, MEMOP_READW, MEMOP_WRITEB, MEMOP_WRITEH, MEMOP_WRITEW);
-attribute enum_encoding of memops_t : type is "one-hot";
+-- commands for bus unit
+type busops_t is (BUS_NOP, BUS_READB, BUS_READBU, BUS_READH, BUS_READHU, BUS_READW, BUS_WRITEB, BUS_WRITEH, BUS_WRITEW);
+attribute enum_encoding of busops_t : type is "one-hot";
 
 -- commands for program counter unit (PCU)
 type pcuops_t is (PCU_OUTPC, PCU_SETPC, PCU_ENTERTRAP, PCU_RETTRAP, PCU_OUTINTRET, PCU_ENTERINT, PCU_RETINT);

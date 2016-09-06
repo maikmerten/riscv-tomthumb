@@ -20,13 +20,13 @@ entity control is
 		I_zero: in boolean := false;
 		-- enable signals for components
 		O_aluen: out std_logic;
+		O_busen: out std_logic;
 		O_decen: out std_logic;
-		O_memen: out std_logic;
 		O_pcuen: out std_logic;
 		O_regen: out std_logic;
 		-- op selection for devices
 		O_aluop: out aluops_t;
-		O_memop: out memops_t;
+		O_busop: out busops_t;
 		O_pcuop: out pcuops_t;
 		O_regop: out regops_t;
 		-- muxer selection signals
@@ -49,20 +49,22 @@ begin
 		variable interrupt_enabled, in_interrupt, in_trap: boolean := false;
 	begin
 	
-		-- run on falling edite to ensure that all control signals arrive in time
+		-- run on falling edge to ensure that all control signals arrive in time
 		-- for the controlled units, which run on the rising edge
 		if falling_edge(I_clk) and I_en = '1' then
 		
 			O_aluen <= '0';
+			O_busen <= '0';
 			O_decen <= '0';
 			O_pcuen <= '0';
 			O_regen <= '0';
-			O_memen <= '0';
+
 		
 			O_aluop <= ALU_ADD;
+			O_busop <= BUS_READB;
 			O_pcuop <= PCU_OUTPC;
 			O_regop <= REGOP_READ;
-			O_memop <= MEMOP_READB;
+			
 			
 			O_mux_alu_dat1_sel <= MUX_ALU_DAT1_PORT_S1;
 			O_mux_alu_dat2_sel <= MUX_ALU_DAT2_PORT_S2;
@@ -80,8 +82,8 @@ begin
 					nextstate := FETCH;
 				
 				when FETCH =>
-					O_memen <= '1';
-					O_memop <= MEMOP_READW;
+					O_busen <= '1';
+					O_busop <= BUS_READW;
 					O_mux_bus_addr_sel <= MUX_BUS_ADDR_PORT_PC;
 					nextstate := DECODE;
 			
@@ -174,14 +176,14 @@ begin
 					nextstate := LOAD2;
 				
 				when LOAD2 =>
-					O_memen <= '1';
+					O_busen <= '1';
 					O_mux_bus_addr_sel <= MUX_BUS_ADDR_PORT_ALU;
 					case I_funct3 is
-						when FUNC_LB =>		O_memop <= MEMOP_READB;
-						when FUNC_LH =>		O_memop <= MEMOP_READH;
-						when FUNC_LW =>		O_memop <= MEMOP_READW;
-						when FUNC_LBU =>		O_memop <= MEMOP_READBU;
-						when FUNC_LHU =>		O_memop <= MEMOP_READHU;
+						when FUNC_LB =>		O_busop <= BUS_READB;
+						when FUNC_LH =>		O_busop <= BUS_READH;
+						when FUNC_LW =>		O_busop <= BUS_READW;
+						when FUNC_LBU =>		O_busop <= BUS_READBU;
+						when FUNC_LHU =>		O_busop <= BUS_READHU;
 						when others => null;
 					end case;
 					nextstate := REGWRITEBUS;
@@ -196,12 +198,12 @@ begin
 					nextstate := STORE2;
 				
 				when STORE2 =>
-					O_memen <= '1';
+					O_busen <= '1';
 					O_mux_bus_addr_sel <= MUX_BUS_ADDR_PORT_ALU;
 					case I_funct3 is
-						when FUNC_SB =>		O_memop <= MEMOP_WRITEB;
-						when FUNC_SH =>		O_memop <= MEMOP_WRITEH;
-						when FUNC_SW =>		O_memop <= MEMOP_WRITEW;
+						when FUNC_SB =>		O_busop <= BUS_WRITEB;
+						when FUNC_SH =>		O_busop <= BUS_WRITEH;
+						when FUNC_SW =>		O_busop <= BUS_WRITEW;
 						when others => null;
 					end case;
 					nextstate := PCNEXT;
