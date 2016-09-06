@@ -111,17 +111,25 @@ begin
 					O_aluen <= '1';
 					O_mux_alu_dat1_sel <= MUX_ALU_DAT1_PORT_S1;
 					O_mux_alu_dat2_sel <= MUX_ALU_DAT2_PORT_S2;
-					case (I_funct7(5) & I_funct3) is
-						when '0' & FUNC_ADD_SUB => 	O_aluop <= ALU_ADD;
-						when '1' & FUNC_ADD_SUB => 	O_aluop <= ALU_SUB;
-						when '-' & FUNC_SLL => 			O_aluop <= ALU_SLL;
-						when '-' & FUNC_SLT => 			O_aluop <= ALU_SLT;
-						when '-' & FUNC_SLTU => 		O_aluop <= ALU_SLTU;
-						when '-' & FUNC_XOR	=> 		O_aluop <= ALU_XOR;
-						when '0' & FUNC_SRL_SRA => 	O_aluop <= ALU_SRL;
-						when '1' & FUNC_SRL_SRA => 	O_aluop <= ALU_SRA;
-						when '-' & FUNC_OR => 			O_aluop <= ALU_OR;
-						when '-' & FUNC_AND => 			O_aluop <= ALU_AND;
+					case I_funct3 is
+						when FUNC_ADD_SUB =>
+							if I_funct7(5) = '0' then
+								O_aluop <= ALU_ADD;
+							else
+								O_aluop <= ALU_SUB;
+							end if;
+						when FUNC_SLL => 			O_aluop <= ALU_SLL;
+						when FUNC_SLT => 			O_aluop <= ALU_SLT;
+						when FUNC_SLTU => 		O_aluop <= ALU_SLTU;
+						when FUNC_XOR	=> 		O_aluop <= ALU_XOR;
+						when FUNC_SRL_SRA =>
+							if I_funct7(5) = '0' then
+								O_aluop <= ALU_SRL;
+							else
+								O_aluop <= ALU_SRA;
+							end if;
+						when FUNC_OR => 			O_aluop <= ALU_OR;
+						when FUNC_AND => 			O_aluop <= ALU_AND;
 						when others => null;
 					end case;
 					nextstate := REGWRITEALU;
@@ -130,16 +138,20 @@ begin
 					O_aluen <= '1';
 					O_mux_alu_dat1_sel <= MUX_ALU_DAT1_PORT_S1;
 					O_mux_alu_dat2_sel <= MUX_ALU_DAT2_PORT_IMM;
-					case (I_funct7(5) & I_funct3) is
-						when '-' & FUNC_ADDI =>			O_aluop <= ALU_ADD;
-						when '-' & FUNC_SLLI =>			O_aluop <= ALU_SLL;
-						when '-' & FUNC_SLTI =>			O_aluop <= ALU_SLT;
-						when '-' & FUNC_SLTIU =>		O_aluop <= ALU_SLTU;
-						when '-' & FUNC_XORI =>			O_aluop <= ALU_XOR;
-						when '0' & FUNC_SRLI_SRAI =>	O_aluop <= ALU_SRL;
-						when '1' & FUNC_SRLI_SRAI =>	O_aluop <= ALU_SRA;
-						when '-' & FUNC_ORI =>			O_aluop <= ALU_OR;
-						when '-' & FUNC_ANDI =>			O_aluop <= ALU_AND;
+					case I_funct3 is
+						when FUNC_ADDI =>			O_aluop <= ALU_ADD;
+						when FUNC_SLLI =>			O_aluop <= ALU_SLL;
+						when FUNC_SLTI =>			O_aluop <= ALU_SLT;
+						when FUNC_SLTIU =>		O_aluop <= ALU_SLTU;
+						when FUNC_XORI =>			O_aluop <= ALU_XOR;
+						when FUNC_SRLI_SRAI =>
+							if I_funct7(5) = '0' then
+								O_aluop <= ALU_SRL;
+							else
+								O_aluop <= ALU_SRA;
+							end if;
+						when FUNC_ORI =>			O_aluop <= ALU_OR;
+						when FUNC_ANDI =>			O_aluop <= ALU_AND;
 						when others => null;
 					end case;
 					nextstate := REGWRITEALU;
