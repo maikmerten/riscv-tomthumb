@@ -31,7 +31,7 @@ architecture Behavioral of cpu_toplevel_wb8 is
 	signal alu_busy: std_logic := '0';
 	signal alu_lt: boolean := false;
 	signal alu_ltu: boolean := false;
-	signal alu_zero: boolean := false;
+	signal alu_eq: boolean := false;
 	
 	signal ctrl_pcuen: std_logic := '0';
 	signal ctrl_decen: std_logic := '0';
@@ -111,7 +111,7 @@ begin
 		O_data => alu_out,
 		O_lt => alu_lt,
 		O_ltu => alu_ltu,
-		O_zero => alu_zero
+		O_eq => alu_eq
 	);
 
 	bus_instance: entity work.bus_wb8 port map(
@@ -145,7 +145,7 @@ begin
 		I_funct7 => dec_funct7,
 		I_lt => alu_lt,
 		I_ltu => alu_ltu,
-		I_zero => alu_zero,
+		I_eq => alu_eq,
 		O_decen => ctrl_decen,
 		O_aluen => ctrl_aluen,
 		O_busen => ctrl_busen,

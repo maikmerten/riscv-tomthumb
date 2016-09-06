@@ -17,7 +17,7 @@ entity control is
 		I_funct7: in std_logic_vector(6 downto 0);
 		I_lt: in boolean := false;
 		I_ltu: in boolean := false;
-		I_zero: in boolean := false;
+		I_eq: in boolean := false;
 		-- enable signals for components
 		O_aluen: out std_logic;
 		O_busen: out std_logic;
@@ -44,7 +44,7 @@ begin
 
 
 	
-	process(I_clk, I_en, I_reset, I_busy, I_interrupt, I_opcode, I_funct3, I_funct7, I_lt, I_ltu, I_zero)
+	process(I_clk, I_en, I_reset, I_busy, I_interrupt, I_opcode, I_funct3, I_funct7, I_lt, I_ltu, I_eq)
 		variable nextstate,state: states_t := RESET;
 		variable interrupt_enabled, in_interrupt, in_trap: boolean := false;
 	begin
@@ -241,7 +241,7 @@ begin
 				when BRANCH =>
 					-- use ALU to compute flags
 					O_aluen <= '1';
-					O_aluop <= ALU_SUB;
+					O_aluop <= ALU_ADD; -- doesn't really matter for flag computation
 					O_mux_alu_dat1_sel <= MUX_ALU_DAT1_PORT_S1;
 					O_mux_alu_dat2_sel <= MUX_ALU_DAT2_PORT_S2;
 					nextstate := BRANCH2;
@@ -251,12 +251,12 @@ begin
 					nextstate := PCNEXT; -- by default, don't branch
 					case I_funct3 is
 						when FUNC_BEQ =>
-							if I_zero then
+							if I_eq then
 								nextstate := PCIMM;
 							end if;
 						
 						when FUNC_BNE =>
-							if not I_zero then
+							if not I_eq then
 								nextstate := PCIMM;
 							end if;
 							

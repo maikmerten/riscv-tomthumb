@@ -17,7 +17,7 @@ entity alu is
 		O_data: out std_logic_vector(XLEN-1 downto 0);
 		O_lt: out boolean := false;
 		O_ltu: out boolean := false;
-		O_zero: out boolean := false
+		O_eq: out boolean := false
 	);
 end alu;
 
@@ -57,6 +57,7 @@ begin
 				
 				O_lt <= lt;
 				O_ltu <= ltu;
+				O_eq <= sub = ('0' & XLEN_ZERO);
 				
 				result := XLEN_ZERO;
 
@@ -114,7 +115,6 @@ begin
 				end if;
 				
 				O_data <= result;
-				O_zero <= result = X"00000000";
 		
 			end if;
 		end if;

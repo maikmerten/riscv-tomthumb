@@ -25,7 +25,7 @@ architecture Behavior of alu_tb is
 	signal O_in_interrupt: boolean := false;
 	signal O_interrupt_enabled: boolean := false;
 	signal O_in_trap: boolean := false;
-	signal O_lt, O_ltu, O_zero: boolean := false;
+	signal O_lt, O_ltu, O_eq: boolean := false;
 
 begin
 
@@ -41,7 +41,7 @@ begin
 		O_data => O_data,
 		O_lt => O_lt,
 		O_ltu => O_ltu,
-		O_zero => O_zero
+		O_eq => O_eq
 	);
 
 	proc_clock: process
@@ -144,7 +144,7 @@ begin
 		assert O_data = X"EFFFFFF1" report "wrong output value" severity failure;
 		assert O_lt = true report "wrong output value" severity failure;
 		assert O_ltu = false report "wrong output value" severity failure;
-		assert O_zero = false report "wrong output value" severity failure;
+		assert O_eq = false report "wrong output value" severity failure;
 		
 
 		wait until falling_edge(I_clk);
@@ -155,7 +155,7 @@ begin
 		assert O_data = X"00000000" report "wrong output value" severity failure;
 		assert O_lt = false report "wrong output value" severity failure;
 		assert O_ltu = false report "wrong output value" severity failure;
-		assert O_zero = true report "wrong output value" severity failure;
+		assert O_eq = true report "wrong output value" severity failure;
 
 
 		wait until falling_edge(I_clk);
@@ -166,7 +166,7 @@ begin
 		assert O_data = X"FFFFFFFF" report "wrong output value" severity failure;
 		assert O_lt = true report "wrong output value" severity failure;
 		assert O_ltu = true report "wrong output value" severity failure;
-		assert O_zero = false report "wrong output value" severity failure;
+		assert O_eq = false report "wrong output value" severity failure;
 		
 		
 		wait for I_clk_period;		
