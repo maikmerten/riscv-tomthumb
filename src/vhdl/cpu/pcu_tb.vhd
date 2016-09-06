@@ -14,7 +14,7 @@ architecture Behavior of pcu_tb is
 	signal I_clk, I_reset : std_logic := '0';
 	signal I_en: std_logic := '1';
 	signal I_op: pcuops_t;
-	signal I_data, O_data: std_logic_vector(XLEN-1 downto 0);
+	signal I_data, O_data, O_trapret: std_logic_vector(XLEN-1 downto 0);
 
 begin
 
@@ -25,7 +25,8 @@ begin
 		I_reset => I_reset,
 		I_op => I_op,
 		I_data => I_data,
-		O_data => O_data
+		O_data => O_data,
+		O_trapret => O_trapret
 	);
 
 	proc_clock: process
@@ -63,9 +64,7 @@ begin
 		I_op <= PCU_SETPC;
 		wait until falling_edge(I_clk);
 		assert O_data = X"CAFEBABE" report "wrong value" severity failure;
-		I_op <= PCU_OUTTRAPRET;
-		wait until falling_edge(I_clk);
-		assert O_data = X"BEEFCAFE" report "wrong value" severity failure;
+		assert O_trapret = X"BEEFCAFE" report "wrong value" severity failure;
 		
 		
 		-- test entering and returning from an interrupt

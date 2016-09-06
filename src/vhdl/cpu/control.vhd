@@ -39,14 +39,14 @@ entity control is
 end control;
 
 architecture Behavioral of control is
-	type states_t is (RESET, FETCH, DECODE, REGREAD, CUSTOM0, JAL, JAL2, JALR, JALR2, LUI, AUIPC, OP, OPIMM, STORE, STORE2, LOAD, LOAD2, BRANCH, BRANCH2, TRAP, REGWRITEBUS, REGWRITEALU, PCNEXT, PCREGIMM, PCIMM, PCUPDATE);
+	type states_t is (RESET, FETCH, DECODE, REGREAD, CUSTOM0, JAL, JAL2, JALR, JALR2, LUI, AUIPC, OP, OPIMM, STORE, STORE2, LOAD, LOAD2, BRANCH, BRANCH2, TRAP, TRAP2, REGWRITEBUS, REGWRITEALU, PCNEXT, PCREGIMM, PCIMM, PCUPDATE);
 begin
 
 
 	
 	process(I_clk, I_en, I_reset, I_busy, I_interrupt, I_opcode, I_funct3, I_funct7, I_lt, I_ltu, I_zero)
 		variable nextstate,state: states_t := RESET;
-		variable in_interrupt, in_trap: boolean := false;
+		variable interrupt_enabled, in_interrupt, in_trap: boolean := false;
 	begin
 	
 		-- run on falling edite to ensure that all control signals arrive in time
@@ -84,10 +84,19 @@ begin
 					O_memop <= MEMOP_READW;
 					O_mux_bus_addr_sel <= MUX_BUS_ADDR_PORT_PC;
 					nextstate := DECODE;
-				
+			
 				when DECODE =>
-					O_decen <= '1';
-					nextstate := REGREAD;
+					-- why check for interrupt here? It turns out that changing PC during bus cycles is a *bad*
+					-- idea. In this state we're sure no bus cycles are in progress.
+					if I_interrupt = '1' and interrupt_enabled and not in_interrupt and not in_trap then
+						O_pcuen <= '1';
+						O_pcuop <= PCU_ENTERINT;
+						in_interrupt := true;
+						nextstate := FETCH;
+					else
+						O_decen <= '1';
+						nextstate := REGREAD;
+					end if;
 
 				when REGREAD =>
 					O_regen <= '1';
@@ -288,13 +297,50 @@ begin
 					
 				
 				when CUSTOM0 =>
-					-- TODO: implement custom instructions for interrupt and trap handling
-					nextstate := PCNEXT;
+					
+					case I_funct7 is
+						when "0000000" =>		-- return from interrupt
+							O_pcuen <= '1';
+							O_pcuop <= PCU_RETINT;
+							in_interrupt := false;
+							nextstate := FETCH;
+						when "0000001" =>		-- enable interrupts
+							interrupt_enabled := true;
+							nextstate := PCNEXT;
+						when "0000010" =>		-- disable interrupts
+							interrupt_enabled := false;
+							nextstate := PCNEXT;
+						when "0001000" =>		-- return from trap
+							O_pcuen <= '1';
+							O_pcuop <= PCU_RETTRAP;
+							in_trap := false;
+							nextstate := FETCH;
+						when "0001001" =>		-- get trap return address
+							O_regen <= '1';
+							O_regop <= REGOP_WRITE;
+							O_mux_reg_data_sel <= MUX_REG_DATA_PORT_TRAPRET;
+							nextstate := PCNEXT;
+						when others => null;
+					
+					end case;
+					
 					
 				when TRAP =>
-					-- TODO: implement trap handling
-					nextstate := PCNEXT;
+					-- compute trap return address
+					O_aluen <= '1';
+					O_aluop <= ALU_ADD;
+					O_mux_alu_dat1_sel <= MUX_ALU_DAT1_PORT_PC;
+					O_mux_alu_dat2_sel <= MUX_ALU_DAT2_PORT_INSTLEN;
+					in_trap := true;
+					nextstate := TRAP2;
+					
+				when TRAP2 =>
+					-- save trap return address and emit trap vector
+					O_pcuen <= '1';
+					O_pcuop <= PCU_ENTERTRAP;
+					nextstate := FETCH;
 				
+			
 				when REGWRITEBUS =>
 					O_regen <= '1';
 					O_regop <= REGOP_WRITE;
@@ -335,14 +381,16 @@ begin
 					O_pcuen <= '1';
 					O_pcuop <= PCU_SETPC;
 					nextstate := FETCH;
-				
-
+					
 			end case;
 		
 		
 			if I_reset = '1' then
 				state := RESET;
 				nextstate := RESET;
+				interrupt_enabled := false;
+				in_interrupt := false;
+				in_trap := false;
 			end if;
 		
 		end if;

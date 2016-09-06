@@ -120,7 +120,7 @@ constant MUX_REG_DATA_PORTS: integer := 4;
 constant MUX_REG_DATA_PORT_ALU: integer := 0;
 constant MUX_REG_DATA_PORT_BUS: integer := 1;
 constant MUX_REG_DATA_PORT_IMM: integer := 2;
-constant MUX_REG_DATA_PORT_PC: integer := 3;
+constant MUX_REG_DATA_PORT_TRAPRET: integer := 3;
 
 constant MUX_ALU_DAT1_PORTS: integer := 2;
 constant MUX_ALU_DAT1_PORT_S1: integer := 0;
@@ -144,7 +144,7 @@ type memops_t is (MEMOP_NOP, MEMOP_READB, MEMOP_READBU, MEMOP_READH, MEMOP_READH
 attribute enum_encoding of memops_t : type is "one-hot";
 
 -- commands for program counter unit (PCU)
-type pcuops_t is (PCU_OUTPC, PCU_SETPC, PCU_OUTTRAPRET, PCU_ENTERTRAP, PCU_RETTRAP, PCU_OUTINTRET, PCU_ENTERINT, PCU_RETINT);
+type pcuops_t is (PCU_OUTPC, PCU_SETPC, PCU_ENTERTRAP, PCU_RETTRAP, PCU_OUTINTRET, PCU_ENTERINT, PCU_RETINT);
 
 -- commands for register unit
 type regops_t is (REGOP_READ, REGOP_WRITE);

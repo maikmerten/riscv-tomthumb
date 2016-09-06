@@ -75,6 +75,7 @@ architecture Behavioral of cpu_toplevel_wb8 is
 	signal mux_reg_data_output: std_logic_vector(XLEN-1 downto 0);
 	
 	signal pcu_out: std_logic_vector(XLEN-1 downto 0);
+	signal pcu_trapret: std_logic_vector(XLEN-1 downto 0);
 	
 	signal reg_dataS1: std_logic_vector(XLEN-1 downto 0);	
 	signal reg_dataS2: std_logic_vector(XLEN-1 downto 0);
@@ -96,7 +97,7 @@ begin
 	mux_reg_data_input(MUX_REG_DATA_PORT_ALU) <= alu_out;
 	mux_reg_data_input(MUX_REG_DATA_PORT_BUS) <= bus_data;
 	mux_reg_data_input(MUX_REG_DATA_PORT_IMM) <= dec_imm;
-	mux_reg_data_input(MUX_REG_DATA_PORT_PC) <= pcu_out;
+	mux_reg_data_input(MUX_REG_DATA_PORT_TRAPRET) <= pcu_trapret;
 
 
 	alu_instance: entity work.alu port map(
@@ -219,7 +220,8 @@ begin
 		I_reset => RST_I,
 		I_op => ctrl_pcuop,
 		I_data => alu_out,
-		O_data => pcu_out
+		O_data => pcu_out,
+		O_trapret => pcu_trapret
 	);
 	
 	

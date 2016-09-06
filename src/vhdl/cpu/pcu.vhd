@@ -12,7 +12,8 @@ entity pcu is
 		I_reset: in std_logic;
 		I_op: in pcuops_t;
 		I_data: in std_logic_vector(XLEN-1 downto 0);
-		O_data: out std_logic_vector(XLEN-1 downto 0)
+		O_data: out std_logic_vector(XLEN-1 downto 0);
+		O_trapret: out std_logic_vector(XLEN-1 downto 0)
 	);
 end pcu;
 
@@ -26,6 +27,8 @@ begin
 	begin
 		if rising_edge(I_clk) then
 		
+			O_trapret <= ret_trap & '0';
+		
 			if I_en = '1' then
 		
 				case I_op is
@@ -37,10 +40,6 @@ begin
 					when PCU_SETPC =>
 						pc <= I_data(XLEN-1 downto 1);
 						O_data <= I_data(XLEN-1 downto 1) & '0';
-						
-					-- output trap return address
-					when PCU_OUTTRAPRET =>
-						O_data <= ret_trap & '0';
 					
 					-- output trap vector and save return address
 					-- NOTE: a return address needs to be computed beforehand
