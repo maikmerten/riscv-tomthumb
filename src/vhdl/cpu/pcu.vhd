@@ -32,9 +32,6 @@ begin
 			if I_en = '1' then
 		
 				case I_op is
-					-- output current program counter value
-					when PCU_OUTPC =>
-						O_data <= pc & '0';
 						
 					-- load and output program counter value
 					when PCU_SETPC =>
@@ -53,10 +50,6 @@ begin
 					when PCU_RETTRAP =>
 						pc <= ret_trap;
 						O_data <= ret_trap & '0';
-					
-					-- output interrupt return address
-					when PCU_OUTINTRET =>
-						O_data <= ret_interrupt & '0';
 						
 					-- output interrupt vector and save return address
 					-- Note: the return address is the original pc value, unlike traps

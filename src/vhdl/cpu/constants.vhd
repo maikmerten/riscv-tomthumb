@@ -144,7 +144,7 @@ type busops_t is (BUS_READB, BUS_READBU, BUS_READH, BUS_READHU, BUS_READW, BUS_W
 attribute enum_encoding of busops_t : type is "one-hot";
 
 -- commands for program counter unit (PCU)
-type pcuops_t is (PCU_OUTPC, PCU_SETPC, PCU_ENTERTRAP, PCU_RETTRAP, PCU_OUTINTRET, PCU_ENTERINT, PCU_RETINT);
+type pcuops_t is (PCU_SETPC, PCU_ENTERTRAP, PCU_RETTRAP, PCU_ENTERINT, PCU_RETINT);
 attribute enum_encoding of pcuops_t : type is "one-hot";
 
 -- commands for register unit
