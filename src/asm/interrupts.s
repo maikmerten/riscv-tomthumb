@@ -58,6 +58,8 @@ loop_trap_delay:
 	# return from trap
 	rtt
 
+# we should only end up here if rtt fails
+	j fail
 
 
 # main program: flicker one board LED

@@ -13,7 +13,7 @@ architecture Behavior of bus_wb8_tb is
 	component bus_wb8
 		Port(
 			I_en: in std_logic;
-			I_op: in memops_t; -- memory opcodes
+			I_op: in busops_t; -- memory opcodes
 			I_addr: in std_logic_vector(31 downto 0); -- address
 			I_data: in std_logic_vector(31 downto 0); -- data to be stored on write ops
 			O_data : out std_logic_vector(31 downto 0);
@@ -34,7 +34,7 @@ architecture Behavior of bus_wb8_tb is
 	end component;
 
 	signal I_en: std_logic;
-	signal I_op: memops_t; -- memory opcodes
+	signal I_op: busops_t; -- memory opcodes
 	signal I_addr: std_logic_vector(31 downto 0); -- address
 	signal I_data: std_logic_vector(31 downto 0); -- data to be stored on write ops
 	signal O_data: std_logic_vector(31 downto 0);
@@ -89,7 +89,7 @@ begin
 		wait until falling_edge(CLK_I);
 		I_en <= '1';
 		I_addr <= X"CAFE0000";
-		I_op <= MEMOP_READW;
+		I_op <= BUS_READW;
 		DAT_I <= X"CC";
 		ACK_I <= '1';
 		wait until falling_edge(O_busy);
@@ -100,7 +100,7 @@ begin
 		wait until falling_edge(CLK_I);
 		I_en <= '1';
 		I_addr <= X"CAFE0000";
-		I_op <= MEMOP_READH;
+		I_op <= BUS_READH;
 		DAT_I <= X"CC";
 		ACK_I <= '1';
 		wait until falling_edge(O_busy);
@@ -111,7 +111,7 @@ begin
 		wait until falling_edge(CLK_I);
 		I_en <= '1';
 		I_addr <= X"CAFE0000";
-		I_op <= MEMOP_READH;
+		I_op <= BUS_READH;
 		DAT_I <= X"0F";
 		ACK_I <= '1';
 		wait until falling_edge(O_busy);
@@ -122,7 +122,7 @@ begin
 		wait until falling_edge(CLK_I);
 		I_en <= '1';
 		I_addr <= X"CAFE0000";
-		I_op <= MEMOP_READB;
+		I_op <= BUS_READB;
 		DAT_I <= X"CC";
 		ACK_I <= '1';
 		wait until falling_edge(O_busy);
@@ -133,7 +133,7 @@ begin
 		wait until falling_edge(CLK_I);
 		I_en <= '1';
 		I_addr <= X"CAFE0000";
-		I_op <= MEMOP_READB;
+		I_op <= BUS_READB;
 		DAT_I <= X"0F";
 		ACK_I <= '1';
 		wait until falling_edge(O_busy);
@@ -145,7 +145,7 @@ begin
 		I_en <= '1';
 		I_data <= X"CAFEBABE";
 		I_addr <= X"CAFE0000";
-		I_op <= MEMOP_WRITEW;
+		I_op <= BUS_WRITEW;
 		ACK_I <= '1';
 		wait until falling_edge(O_busy);
 		assert DAT_O = X"CA" report "wrong data written" severity failure;
@@ -156,7 +156,7 @@ begin
 		I_en <= '1';
 		I_data <= X"CAFEBABE";
 		I_addr <= X"CAFE0000";
-		I_op <= MEMOP_WRITEH;
+		I_op <= BUS_WRITEH;
 		ACK_I <= '1';
 		wait until falling_edge(O_busy);
 		assert DAT_O = X"BA" report "wrong data written" severity failure;
@@ -167,7 +167,7 @@ begin
 		I_en <= '1';
 		I_data <= X"CAFEBABE";
 		I_addr <= X"CAFE0000";
-		I_op <= MEMOP_WRITEB;
+		I_op <= BUS_WRITEB;
 		ACK_I <= '1';
 		wait until falling_edge(O_busy);
 		assert DAT_O = X"BE" report "wrong data written" severity failure;

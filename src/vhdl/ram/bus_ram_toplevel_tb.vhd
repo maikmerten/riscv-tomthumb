@@ -15,7 +15,7 @@ architecture Behavior of bus_ram_toplevel_tb is
 			I_clk: in std_logic;
 			I_reset: in std_logic;
 			I_en: in std_logic;
-			I_op: in memops_t; -- memory opcodes
+			I_op: in busops_t; -- memory opcodes
 			I_iaddr: in std_logic_vector(31 downto 0); -- instruction address, provided by PCU
 			I_daddr: in std_logic_vector(31 downto 0); -- data address, provided by ALU
 			I_data: in std_logic_vector(31 downto 0); -- data to be stored on write ops
@@ -29,7 +29,7 @@ architecture Behavior of bus_ram_toplevel_tb is
 	
 	signal I_clk, I_reset, I_en, I_mem_imem, O_busy, O_clk, O_reset: std_logic := '0';
 	signal I_iaddr, I_daddr, I_data, O_data: std_logic_vector(31 downto 0) := X"00000000";
-	signal I_op: memops_t;
+	signal I_op: busops_t;
 
 	constant I_clk_period : time := 10 ns;
 begin
@@ -64,7 +64,7 @@ begin
 		wait until falling_edge(I_clk);
 		I_en <= '1';
 		I_daddr <= X"00000000";
-		I_op <= MEMOP_READW;
+		I_op <= BUS_READW;
 		wait until falling_edge(O_busy);
 		I_en <= '0';
 	
@@ -74,14 +74,14 @@ begin
 		I_data <= X"CAFEBABE";
 		I_daddr <= X"CAFE0000";
 		I_mem_imem <= '0';
-		I_op <= MEMOP_WRITEW;
+		I_op <= BUS_WRITEW;
 		wait until falling_edge(O_busy);
 		I_en <= '0';
 		
 		-- read a word from memory, check if contents match what we've written
 		wait until falling_edge(I_clk);
 		I_en <= '1';
-		I_op <= MEMOP_READW;
+		I_op <= BUS_READW;
 		wait until falling_edge(O_busy);
 		I_en <= '0';
 		assert O_data = X"CAFEBABE" report "wrong data read" severity failure;
@@ -89,7 +89,7 @@ begin
 		-- read a half word from memory, check sign extension
 		wait until falling_edge(I_clk);
 		I_en <= '1';
-		I_op <= MEMOP_READH;
+		I_op <= BUS_READH;
 		wait until falling_edge(O_busy);
 		I_en <= '0';
 		assert O_data = X"FFFFBABE" report "wrong data read" severity failure;
@@ -97,7 +97,7 @@ begin
 		-- read a half word from memory, check zero extension
 		wait until falling_edge(I_clk);
 		I_en <= '1';
-		I_op <= MEMOP_READHU;
+		I_op <= BUS_READHU;
 		wait until falling_edge(O_busy);
 		I_en <= '0';
 		assert O_data = X"0000BABE" report "wrong data read" severity failure;	
@@ -105,7 +105,7 @@ begin
 		-- read a byte from memory, check sign extension
 		wait until falling_edge(I_clk);
 		I_en <= '1';
-		I_op <= MEMOP_READB;
+		I_op <= BUS_READB;
 		wait until falling_edge(O_busy);
 		I_en <= '0';
 		assert O_data = X"FFFFFFBE" report "wrong data read" severity failure;
@@ -113,7 +113,7 @@ begin
 		-- read a byte from memory, check zero extension
 		wait until falling_edge(I_clk);
 		I_en <= '1';
-		I_op <= MEMOP_READBU;
+		I_op <= BUS_READBU;
 		wait until falling_edge(O_busy);
 		I_en <= '0';
 		assert O_data = X"000000BE" report "wrong data read" severity failure;	

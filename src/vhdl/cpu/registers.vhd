@@ -38,10 +38,6 @@ begin
 				data := I_data;
 			end if;
 
-			-- we don't care for read outputs (unless reading, of course)
-			O_dataS1 <= X"--------";
-			O_dataS2 <= X"--------";
-			
 			-- this is a pattern that Quartus RAM synthesis understands
 			-- as *not* being read-during-write (with no_rw_check attribute)
 			if I_op = REGOP_WRITE then

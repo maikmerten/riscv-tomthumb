@@ -9,7 +9,7 @@ entity bus_wb8 is
 	Port(
 		-- wired to CPU core
 		I_en: in std_logic;
-		I_op: in memops_t; -- memory opcodes
+		I_op: in busops_t; -- memory opcodes
 		I_addr: in std_logic_vector(31 downto 0); -- address
 		I_data: in std_logic_vector(31 downto 0); -- data to be stored on write ops
 		O_data : out std_logic_vector(31 downto 0);
@@ -54,41 +54,41 @@ begin
 					byte := 0; -- start at byte 0
 				
 					case I_op is
-						when MEMOP_READW =>
+						when BUS_READW =>
 							byte_target := 3; -- read 4 bytes
 							state := READ_START;
 						
-						when MEMOP_READH =>
+						when BUS_READH =>
 							byte_target := 1; -- read 2 bytes
 							state := READ_START;
 							
-						when MEMOP_READHU =>
+						when BUS_READHU =>
 							byte_target := 1; -- read 2 bytes
 							zeroextend := '1';
 							state := READ_START;
 						
-						when MEMOP_READB =>
+						when BUS_READB =>
 							byte_target := 0; -- read 1 byte
 							state := READ_START;
 							
-						when MEMOP_READBU =>
+						when BUS_READBU =>
 							byte_target := 0; -- read 1 byte
 							zeroextend := '1';
 							state := READ_START;
 						
-						when MEMOP_WRITEW =>
+						when BUS_WRITEW =>
 							byte_target := 3; -- write 4 bytes
 							state := WRITE_START;
 							
-						when MEMOP_WRITEH =>
+						when BUS_WRITEH =>
 							byte_target := 1; -- write 2 bytes
 							state := WRITE_START;
 						
-						when MEMOP_WRITEB =>
+						when BUS_WRITEB =>
 							byte_target := 0; -- write 1 byte
 							state := WRITE_START;
 						
-						when MEMOP_NOP =>
+						when BUS_NOP =>
 							null;
 							
 					end case;
