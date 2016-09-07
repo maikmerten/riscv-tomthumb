@@ -87,10 +87,7 @@ begin
 						when BUS_WRITEB =>
 							byte_target := 0; -- write 1 byte
 							state := WRITE_START;
-						
-						when BUS_NOP =>
-							null;
-							
+
 					end case;
 				end if;
 			

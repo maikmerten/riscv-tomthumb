@@ -140,11 +140,12 @@ type aluops_t is (ALU_ADD, ALU_SUB, ALU_AND, ALU_OR, ALU_XOR, ALU_SLT, ALU_SLTU,
 
 
 -- commands for bus unit
-type busops_t is (BUS_NOP, BUS_READB, BUS_READBU, BUS_READH, BUS_READHU, BUS_READW, BUS_WRITEB, BUS_WRITEH, BUS_WRITEW);
+type busops_t is (BUS_READB, BUS_READBU, BUS_READH, BUS_READHU, BUS_READW, BUS_WRITEB, BUS_WRITEH, BUS_WRITEW);
 attribute enum_encoding of busops_t : type is "one-hot";
 
 -- commands for program counter unit (PCU)
 type pcuops_t is (PCU_OUTPC, PCU_SETPC, PCU_ENTERTRAP, PCU_RETTRAP, PCU_OUTINTRET, PCU_ENTERINT, PCU_RETINT);
+attribute enum_encoding of pcuops_t : type is "one-hot";
 
 -- commands for register unit
 type regops_t is (REGOP_READ, REGOP_WRITE);
