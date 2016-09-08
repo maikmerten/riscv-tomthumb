@@ -39,7 +39,7 @@ entity control is
 end control;
 
 architecture Behavioral of control is
-	type states_t is (RESET, FETCH, DECODE, REGREAD, CUSTOM0, JAL, JAL2, JALR, JALR2, LUI, AUIPC, OP, OPIMM, STORE, STORE2, LOAD, LOAD2, BRANCH, BRANCH2, TRAP, TRAP2, REGWRITEBUS, REGWRITEALU, PCNEXT, PCREGIMM, PCIMM, PCUPDATE);
+	type states_t is (RESET, FETCH, DECODE, REGREAD, CUSTOM0, JAL, JAL2, JALR, JALR2, LUI, AUIPC, OP, OPIMM, STORE, STORE2, LOAD, LOAD2, BRANCH, BRANCH2, TRAP, TRAP2, REGWRITEBUS, REGWRITEALU, PCNEXT, PCREGIMM, PCIMM, PCUPDATE_FETCH);
 begin
 
 
@@ -82,6 +82,7 @@ begin
 					nextstate := FETCH;
 				
 				when FETCH =>
+					-- fetch next instruction, use the address the program counter unit (PCU) emits
 					O_busen <= '1';
 					O_busop <= BUS_READW;
 					O_mux_bus_addr_sel <= MUX_BUS_ADDR_PORT_PC;
@@ -361,7 +362,7 @@ begin
 					O_aluop <= ALU_ADD;
 					O_mux_alu_dat1_sel <= MUX_ALU_DAT1_PORT_PC;
 					O_mux_alu_dat2_sel <= MUX_ALU_DAT2_PORT_INSTLEN;
-					nextstate := PCUPDATE;
+					nextstate := PCUPDATE_FETCH;
 				
 				when PCREGIMM =>
 					-- compute new value for PC: S1 + IMM;
@@ -369,7 +370,7 @@ begin
 					O_aluop <= ALU_ADD;
 					O_mux_alu_dat1_sel <= MUX_ALU_DAT1_PORT_S1;
 					O_mux_alu_dat2_sel <= MUX_ALU_DAT2_PORT_IMM;
-					nextstate := PCUPDATE;
+					nextstate := PCUPDATE_FETCH;
 				
 				when PCIMM =>
 					-- compute new value for PC: PC + IMM;
@@ -377,12 +378,19 @@ begin
 					O_aluop <= ALU_ADD;
 					O_mux_alu_dat1_sel <= MUX_ALU_DAT1_PORT_PC;
 					O_mux_alu_dat2_sel <= MUX_ALU_DAT2_PORT_IMM;
-					nextstate := PCUPDATE;
+					nextstate := PCUPDATE_FETCH;
 				
-				when PCUPDATE =>
+				when PCUPDATE_FETCH =>
+					-- load new PC value into program counter unit
 					O_pcuen <= '1';
 					O_pcuop <= PCU_SETPC;
-					nextstate := FETCH;
+					
+					-- given that right now the ALU outputs the address for the next
+					-- instruction, we can also start instruction fetch
+					O_busen <= '1';
+					O_busop <= BUS_READW;
+					O_mux_bus_addr_sel <= MUX_BUS_ADDR_PORT_ALU;
+					nextstate := DECODE;
 					
 			end case;
 		
