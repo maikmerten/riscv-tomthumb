@@ -24,13 +24,13 @@ end alu;
 architecture Behavioral of alu is
 	alias op1 is I_dataS1(XLEN-1 downto 0);
 	alias op2 is I_dataS2(XLEN-1 downto 0);
+	signal result: std_logic_vector(XLEN-1 downto 0) := XLEN_ZERO;
 begin
 	process(I_clk, I_en, I_dataS1, I_dataS2, I_reset, I_aluop)
-		variable tmpval,sum,eor,result: std_logic_vector(XLEN-1 downto 0);
+		variable sum,eor: std_logic_vector(XLEN-1 downto 0);
 		variable sub: std_logic_vector(XLEN downto 0); -- one additional bit to detect underflow
 		variable shiftcnt: std_logic_vector(4 downto 0);
-		variable busy: boolean := false;
-		variable lt,ltu: boolean;
+		variable busy,lt,ltu: boolean := false;
 	begin
 	
 	
@@ -59,50 +59,49 @@ begin
 				O_ltu <= ltu;
 				O_eq <= sub = ('0' & XLEN_ZERO);
 				
-				result := XLEN_ZERO;
-
 				case I_aluop is
 		
 					when ALU_ADD =>
-						result := sum;
+						result <= sum;
 				
 					when ALU_SUB =>
-						result := sub(XLEN-1 downto 0);
+						result <= sub(XLEN-1 downto 0);
 					
 					when ALU_AND =>
-						result := op1 and op2;
+						result <= op1 and op2;
 				
 					when ALU_OR =>
-						result := op1 or op2;
+						result <= op1 or op2;
 					
 					when ALU_XOR =>
-						result := eor;
+						result <= eor;
 				
 					when ALU_SLT =>
+						result <= XLEN_ZERO;
 						if lt then
-							result(0) := '1';
+							result(0) <= '1';
 						end if;
 				
 					when ALU_SLTU =>
+						result <= XLEN_ZERO;
 						if ltu then
-							result(0) := '1';
+							result(0) <= '1';
 						end if;
 				
 					when ALU_SLL | ALU_SRL | ALU_SRA =>
 						if not busy then
 							busy := true;
-							tmpval := op1;
+							result <= op1;
 							shiftcnt := op2(4 downto 0);
 						elsif shiftcnt /= "00000" then
 							case I_aluop is
-								when ALU_SLL => tmpval := tmpval(30 downto 0) & '0';
-								when ALU_SRL => tmpval := '0' & tmpval(31 downto 1);
-								when others => tmpval := tmpval(31) & tmpval(31 downto 1);
+								when ALU_SLL => result <= result(30 downto 0) & '0';
+								when ALU_SRL => result <= '0' & result(31 downto 1);
+								when others => result <= result(31) & result(31 downto 1);
 							end case;
 							shiftcnt := std_logic_vector(unsigned(shiftcnt) - 1);
 						else
 							busy := false;
-							result := tmpval;
 						end if;
 		
 				end case;
@@ -114,10 +113,16 @@ begin
 					O_busy <= '0';
 				end if;
 				
-				O_data <= result;
 		
 			end if;
 		end if;
 	end process;
+	
+	
+	process(result)
+	begin
+		O_data <= result;
+	end process;
+	
 
 end Behavioral;
