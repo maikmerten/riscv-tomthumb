@@ -5,7 +5,7 @@ This repository contains the VHDL sources for a simple CPU design which executes
 
 My main motivation for this project is to learn VHDL - the code quality and feature set reflects this. No guarantees! Feel free to use the code in any way you see fit, though (see LICENSE file).
 
-Primary design goals are simplicity of the design and lightness regarding consumption of FPGA resources. Currently, the complete designs fits within ~1600 LEs on a Cyclone IV FPGA, ~1200 LEs being used by the CPU core. The design safely can be clocked at up to ~100 MHz on Cyclone IV devices, although the default configuration for the DE0-Nano board clocks it at merely 50 MHz.
+Primary design goals are simplicity of the design and lightness regarding consumption of FPGA resources. Currently, the complete designs fits within ~1400 LEs on a Cyclone IV FPGA, ~925 LEs being used by the CPU core. The design safely can be clocked at over 80 MHz on Cyclone IV devices, although the default configuration for the DE0-Nano board clocks it at merely 50 MHz.
 
 To reflect its design sophistication and technical prowess, the design is named after Tom Thumb, an experimental locomotive design from 1830. https://en.wikipedia.org/wiki/Tom_Thumb_%28locomotive%29
 
@@ -16,16 +16,7 @@ To reflect its design sophistication and technical prowess, the design is named 
     src/vhdl/cpu/
 
 
-The CPU executes the RV32I subset of the RISC-V instruction set. Instructions need several cycles to execute as they progress through following stages:
-
- * Instruction fetch (FETCH)
- * Instruction decode (DECODE)
- * Register read (REGREAD)
- * Execution on ALU (EXECUTE)
- * Memory stage (MEMORY)
- * Register writeback (REGWRITE)
-
-MEMORY and REGWRITE are skipped for instructions that don't need these stages. After conclusion of the instruction fetch most instructions thus need between three and five additional cycles. Shift operations are slower, with the number of additional cycles being equal to the shift amount (shifts are done one bit position at a time).
+The CPU executes the RV32I subset of the RISC-V instruction set. Instructions need several cycles to execute, as they progress through fetch, decode, execute, memory and writeback stages (depending on the instruction type). For compactness, the ALU is reused over several cycles to compute the instruction result, program counter value and memory address. Shift operations keep the ALU busy for several cycles, with the number of additional cycles being equal to the shift amount (shifts are done one bit position at a time).
 
 The speed of instruction fetch and load/store instructions is highly dependent on the bus interface. Currently, the only CPU interface available implements a Wishbone bus (http://cdn.opencores.org/downloads/wbspec_b4.pdf) with a data width of 8 bit (!) and an address width of 32 bit (bus_wb8.vhd). Four bus cycles are needed to fetch 32 bits, which means that performance is completely dominated by the dozen clock cycles needed to complete instruction fetch. Performance can thus trivially be improved by, e.g., plumbing in a 32-bit bus interface.
 
