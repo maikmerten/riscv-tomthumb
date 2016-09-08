@@ -9,7 +9,7 @@ entity bus_wb8 is
 	Port(
 		-- wired to CPU core
 		I_en: in std_logic;
-		I_op: in busops_t; -- memory opcodes
+		I_op: in busops_t; -- bus opcodes
 		I_addr: in std_logic_vector(31 downto 0); -- address
 		I_data: in std_logic_vector(31 downto 0); -- data to be stored on write ops
 		O_data : out std_logic_vector(31 downto 0);
