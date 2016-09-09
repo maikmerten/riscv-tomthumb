@@ -31,6 +31,7 @@ architecture Behavioral of sys_toplevel_wb8 is
 	signal cpu_ADR_O: std_logic_vector(XLEN-1 downto 0);
 	signal cpu_STB_O, cpu_CYC_O, cpu_WE_O: std_logic := '0';
 
+	signal interruptgen_interrupt: std_logic := '0';
 	
 	signal pll_clk, pll_vga_clk: std_logic;
 	
@@ -80,8 +81,15 @@ begin
 		CYC_O => cpu_CYC_O,
 		STB_O => cpu_STB_O,
 		WE_O => cpu_WE_O,
-		I_interrupt => inv_interrupt
+		I_interrupt => interruptgen_interrupt
 	);
+	
+	interruptgen_instance: entity work.interruptgen port map(
+		I_clk => pll_clk,
+		I_interrupt => inv_interrupt,
+		O_interrupt => interruptgen_interrupt
+	);
+
 	
 	leds_instance: entity work.leds_wb8 port map(
 		ADR_I => cpu_ADR_O,
