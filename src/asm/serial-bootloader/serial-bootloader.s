@@ -7,7 +7,7 @@
 j main
 
 
-.=256
+.=196
 
 ##########
 read_serial:
@@ -64,6 +64,7 @@ read_mem:
 	sw ra,0(sp)
 
 	lbu a0,0(R_ADDR)		# read byte from current address
+	jal write_led
 	jal write_serial		# write byte to serial port
 	addi R_ADDR,R_ADDR,1		# increment address
 
@@ -103,7 +104,43 @@ call:
 ##########
 main:
 ##########
-	li sp,2048		# initialize stack pointer
+
+	# dump registers to fixed memory locations
+	sw x1,16(zero)
+	sw x2,20(zero)
+	sw x3,24(zero)
+	sw x4,28(zero)
+	sw x5,32(zero)
+	sw x6,36(zero)
+	sw x7,40(zero)
+	sw x8,44(zero)
+	sw x9,48(zero)
+	sw x10,52(zero)
+	sw x11,56(zero)
+	sw x12,60(zero)
+	sw x13,64(zero)
+	sw x14,68(zero)
+	sw x15,72(zero)
+	sw x16,76(zero)
+	sw x17,80(zero)
+	sw x18,84(zero)
+	sw x19,88(zero)
+	sw x20,92(zero)
+	sw x21,96(zero)
+	sw x22,100(zero)
+	sw x23,104(zero)
+	sw x24,108(zero)
+	sw x25,112(zero)
+	sw x26,116(zero)
+	sw x27,120(zero)
+	sw x28,124(zero)
+	sw x29,128(zero)
+	sw x30,132(zero)
+	sw x31,136(zero)
+
+	# initialize stack pointer to somewhere between the register dump and
+	# the bootloader code
+	li sp,196
 
 main_read_cmd:
 	jal read_serial
@@ -139,7 +176,7 @@ main_cmd_write:
 
 main_cmd_call:
 	jal call
-	j main_read_cmd
+	j main
 
 
 .size	main, .-main
