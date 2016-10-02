@@ -114,7 +114,7 @@ begin
 	serial_instance: entity work.serial_wb8
 	generic map(
 		CLOCKFREQ => 50000000,
-		BAUDRATE => 9600
+		BAUDRATE => 230400
 	)
 	port map(
 		ADR_I => cpu_ADR_O,
