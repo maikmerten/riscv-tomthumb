@@ -106,7 +106,7 @@ These RAMs are synthesized from FPGA block RAM resources and thus should be devi
 
     src/vhdl/serial
 
-A simple two-wire (TX and RX) serial interface that can be interfaced to, e.g., by means of a 3.3 Volt USB-serial cable. The interface is by default configured for 230400 Baud connections and features status registers to denote if fresh data has arrived and whether the device is ready to transmit data.
+A simple two-wire (TX and RX) serial interface that can be interfaced to, e.g., by means of a 3.3 Volt USB-serial cable. The interface is by default configured for 115200 Baud connections and features status registers to denote if fresh data has arrived and whether the device is ready to transmit data.
 
 
 ## LED output
