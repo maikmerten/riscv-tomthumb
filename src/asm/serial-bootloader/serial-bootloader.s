@@ -2,6 +2,7 @@
 #define SERIAL	0x20000000
 #define R_TMP	s1
 #define R_ADDR	s2
+#define R_CHK	s3
 
 .text
 j main
@@ -17,6 +18,7 @@ read_byte_wait:
 	lb t1,1(t0) 		# load serial status register
 	beqz t1,read_byte_wait	# loop until ready to read
 	lbu a0,0(t0)		# read byte without sign extension
+	xor R_CHK,R_CHK,a0	# xor check sum
 	ret
 
 ##########
@@ -47,11 +49,13 @@ read_address:
 read_address_loop:
 	jal read_serial			# read byte from serial
 	jal write_led
-	jal write_serial
 	slli R_ADDR,R_ADDR,8		# shift address register one byte left
 	or R_ADDR,R_ADDR,a0		# fill lowest eight bits with read byte
 	addi R_TMP,R_TMP,-1		# decrement loop counter
 	bnez R_TMP,read_address_loop	# loop until counter is zero
+
+	mv a0,R_CHK
+	jal write_serial		# transmit checksum
 
 	lw ra,0(sp)
 	addi sp,sp,4
@@ -62,6 +66,9 @@ read_mem:
 ##########
 	addi sp,sp,-4
 	sw ra,0(sp)
+
+	mv a0,R_CHK
+	jal write_serial		# transmit checksum
 
 	lbu a0,0(R_ADDR)		# read byte from current address
 	jal write_led
@@ -80,9 +87,11 @@ write_mem:
 
 	jal read_serial			# read byte from serial port
 	jal write_led
-	jal write_serial
 	sb a0,0(R_ADDR)			# store byte to current address
 	addi R_ADDR,R_ADDR,1		# increment address
+
+	mv a0,R_CHK
+	jal write_serial		# transmit checksum
 
 	lw ra,0(sp)
 	addi sp,sp,4
@@ -93,6 +102,9 @@ call:
 ##########
 	addi sp,sp,-4
 	sw ra,0(sp)
+
+	mv a0,R_CHK
+	jal write_serial		# transmit checksum
 
 	jalr R_ADDR
 
@@ -143,9 +155,11 @@ main:
 	li sp,196
 
 main_read_cmd:
+	# clear checksum
+	add R_CHK,zero,zero
+
 	jal read_serial
 	jal write_led
-	jal write_serial
 
 	li t0,'A'		# check for "read address" command
 	beq t0,a0,main_cmd_address
