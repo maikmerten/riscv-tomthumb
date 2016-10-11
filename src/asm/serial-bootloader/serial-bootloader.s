@@ -3,6 +3,7 @@
 #define R_TMP	s1
 #define R_ADDR	s2
 #define R_CHK	s3
+#define R_LEN	s4
 
 .text
 j main
@@ -48,7 +49,6 @@ read_address:
 	li R_TMP,0x4
 read_address_loop:
 	jal read_serial			# read byte from serial
-	jal write_led
 	slli R_ADDR,R_ADDR,8		# shift address register one byte left
 	or R_ADDR,R_ADDR,a0		# fill lowest eight bits with read byte
 	addi R_TMP,R_TMP,-1		# decrement loop counter
@@ -85,11 +85,26 @@ write_mem:
 	addi sp,sp,-4
 	sw ra,0(sp)
 
+	# read 4 bytes that encode how many bytes are to be written to memory
+	li R_TMP,4
+write_mem_len_loop:
+	slli R_LEN,R_LEN,8
+	jal read_serial
+	or R_LEN,R_LEN,a0
+	addi R_TMP,R_TMP,-1
+	bnez R_TMP,write_mem_len_loop
+
+
+write_mem_write_loop:
+	beqz R_LEN,write_mem_finish
 	jal read_serial			# read byte from serial port
 	jal write_led
 	sb a0,0(R_ADDR)			# store byte to current address
 	addi R_ADDR,R_ADDR,1		# increment address
+	addi R_LEN,R_LEN,-1		# decrease byte counter
+	j write_mem_write_loop
 
+write_mem_finish:
 	mv a0,R_CHK
 	jal write_serial		# transmit checksum
 
