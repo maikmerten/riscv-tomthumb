@@ -12,9 +12,11 @@ entity sys_toplevel_wb8 is
 		I_reset: in std_logic := '0';
 		I_serial_rx: in std_logic;
 		I_interrupt: in std_logic;
+		I_spi_miso: in std_logic;
 		O_leds: out std_logic_vector(7 downto 0) := X"00";
 		O_serial_tx: out std_logic;
-		O_vga_vsync, O_vga_hsync, O_vga_r, O_vga_g, O_vga_b: out std_logic := '0'
+		O_vga_vsync, O_vga_hsync, O_vga_r, O_vga_g, O_vga_b: out std_logic := '0';
+		O_spi_sel, O_spi_clk, O_spi_mosi: out std_logic := '0'
 	);
 end sys_toplevel_wb8;
 
@@ -34,22 +36,8 @@ architecture Behavioral of sys_toplevel_wb8 is
 	signal interruptgen_interrupt: std_logic := '0';
 	
 	signal pll_clk, pll_vga_clk: std_logic;
-	
-	signal leds_DAT_O: std_logic_vector(7 downto 0);
-	signal leds_ACK_O: std_logic := '0';
-	signal dummy_leds_O: std_logic_vector(7 downto 0);
-	
-	signal ram_DAT_O: std_logic_vector(7 downto 0);
-	signal ram_ACK_O: std_logic := '0';
-	
+
 	signal reset_ctrl_reset_O: std_logic;
-	
-	signal serial_DAT_O: std_logic_vector(7 downto 0);
-	signal serial_ACK_O: std_logic := '0';
-	
-	signal vga_DAT_O: std_logic_vector(7 downto 0);
-	signal vga_ACK_O: std_logic := '0';
-	
 	
 	signal inv_reset: std_logic := '0';
 	signal inv_interrupt: std_logic := '0';
@@ -100,7 +88,7 @@ begin
 		ACK_O => arb_ACK_I(1),
 		DAT_O => arb_DAT_I(1),
 		-- control signal for onboard LEDs
-		O_leds => O_leds -- dummy_leds_O
+		O_leds => O_leds
 	);
 	
 	reset_ctrl_instance: entity work.reset_ctrl port map(
@@ -127,6 +115,21 @@ begin
 		I_rx => I_serial_rx,
 		O_tx => O_serial_tx
 	);
+	
+	spirom_instance: entity work.spirom_wb8 port map(
+		CLK_I => pll_clk,
+		STB_I => arb_STB_O(4),
+		ADR_I => cpu_ADR_O,
+		DAT_O => arb_DAT_I(4),
+		ACK_O => arb_ACK_I(4),
+		
+		-- SPI signal lines
+		I_spi_miso => I_spi_miso,
+		O_spi_sel => O_spi_sel,
+		O_spi_clk => O_spi_clk,
+		O_spi_mosi => O_spi_mosi
+	);
+	
 	
 	vga_instance: entity work.vga_wb8 port map(
 		ADR_I => cpu_ADR_O,
