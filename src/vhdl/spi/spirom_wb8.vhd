@@ -44,24 +44,19 @@ begin
 	
 
 	process(CLK_I)
-		type ctrlstates is (IDLE, OPCODE, ADDR1, ADDR2, ADDR3, READ1, READ2, ACK, TX1, TX2);
+		type ctrlstates is (IDLE, OPCODE, ADDR1, ADDR2, ADDR3, READ1, READ2, WAITSTATE, TX1, TX2);
 		variable state, retstate: ctrlstates := IDLE;
-		variable addr: std_logic_vector(23 downto 0) := X"000000";
-		variable delay_counter: std_logic_vector(20 downto 0);
+		variable doack: std_logic := '0';
 	begin
 	
 		if rising_edge(CLK_I) then
-		
-		
+			doack := '0';
 			O_spi_sel <= '0'; -- select device
-			ACK_O <= '0'; -- don't ACK bus
-			
 		
 			case state is
 				when IDLE =>
 					O_spi_sel <= '1'; -- deselect device
 					if not spi_busy and STB_I = '1' then
-						addr := ADR_I(23 downto 0);
 						state := OPCODE;
 					end if;
 				
@@ -72,17 +67,17 @@ begin
 					
 				
 				when ADDR1 =>
-					tx_data <= addr(23 downto 16);
+					tx_data <= ADR_I(23 downto 16);
 					state := TX1;
 					retstate := ADDR2;
 					
 				when ADDR2 =>
-					tx_data <= addr(15 downto 8);
+					tx_data <= ADR_I(15 downto 8);
 					state := TX1;
 					retstate := ADDR3;
 					
 				when ADDR3 =>				
-					tx_data <= addr(7 downto 0);
+					tx_data <= ADR_I(7 downto 0);
 					state := TX1;
 					retstate := READ1;
 					
@@ -92,15 +87,11 @@ begin
 					retstate := READ2;
 					
 				when READ2 =>
-					DAT_O <= rx_data;
-					state := ACK;
-				
-				when ACK =>
-					ACK_O <= '1';
-					if STB_I = '0' then
-						state := IDLE;
-					end if;
-				
+					doack := '1';
+					state := WAITSTATE;
+					
+				when WAITSTATE =>
+					state := IDLE;
 				
 				when TX1 =>
 					-- signal beginning of transmission
@@ -119,9 +110,11 @@ begin
 					
 			
 			end case;
-			
 		
 		end if;
+
+		DAT_O <= rx_data;
+		ACK_O <= doack and STB_I;
 		
 		
 	end process;
