@@ -116,10 +116,13 @@ begin
 		O_tx => O_serial_tx
 	);
 	
-	spirom_instance: entity work.spirom_wb8 port map(
+	spiromram_instance: entity work.spiromram_wb8 port map(
 		CLK_I => pll_clk,
 		STB_I => arb_STB_O(4),
+		WE_I => cpu_WE_O,
 		ADR_I => cpu_ADR_O,
+		DAT_I => cpu_DAT_O,
+		RST_I => reset_ctrl_reset_O,
 		DAT_O => arb_DAT_I(4),
 		ACK_O => arb_ACK_I(4),
 		
