@@ -35,10 +35,10 @@ architecture Behavioral of rgbctrl_wb8 is
 	
 	-- timing for ws8212b
 	constant T0H: integer := 400;	-- high time for 0 bit (ns)
-	constant T0L: integer := 850; --  low time for 0 bit (ns)
+	constant T0L: integer := 800; --  low time for 0 bit (ns)
 	constant T1H: integer := 800; -- high time for 1 bit (ns)
-	constant T1L: integer := 450; --  low time for 1 bit (ns)
-	constant RES: integer := 50000; -- reset time (ns)
+	constant T1L: integer := 400; --  low time for 1 bit (ns)
+	constant RES: integer := 60000; -- reset time (ns)
 	
 	constant T0H_CLKS: integer := T0H / TCL; -- clock cycles for 0 bit, high
 	constant T0L_CLKS: integer := T0L / TCL; -- clock cycles for 0 bit, low
