@@ -6,8 +6,11 @@ library work;
 use work.constants.all;
 
 entity spiromram_wb8 is
+	generic(
+		ADDRLEN: integer := 12
+	);
 	
-	Port(
+	port(
 		-- bus signal naming according to Wishbone B4 spec
 		CLK_I: in std_logic;
 		STB_I: in std_logic;
@@ -28,7 +31,6 @@ end spiromram_wb8;
 
 
 architecture Behavioral of spiromram_wb8 is
-	constant ADDRLEN: integer := 12;
 	type store_t is array(0 to (2**ADDRLEN)-1) of std_logic_vector(7 downto 0);
 	signal ram: store_t := (others => X"00");
 	attribute ramstyle : string;
