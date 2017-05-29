@@ -59,7 +59,7 @@ begin
 		variable state, retstate: ctrlstates := RESET;
 		variable ack: std_logic := '0';
 		variable addr: std_logic_vector(23 downto 0) := X"000000";
-		variable init: boolean := false;
+		variable init: std_logic := '1';
 		variable initaddr: std_logic_vector(ADDRLEN-1 downto 0);
 	begin
 	
@@ -76,7 +76,7 @@ begin
 			
 				when RESET =>
 					O_spi_sel <= '1'; -- deselect device
-					init := true;
+					init := '1';
 					initaddr := (others => '0');
 					state := FILLRAM1;
 			
@@ -93,7 +93,7 @@ begin
 					initaddr := std_logic_vector((unsigned(initaddr) + 1));
 					if unsigned(initaddr) = 0 then
 						-- init address wrapped back to zero, we're finished
-						init := false;
+						init := '0';
 						state := IDLE;
 					else
 						-- fetch next byte to initialize RAM
@@ -162,7 +162,7 @@ begin
 					state := READ7;
 					
 				when READ7 =>
-					if not init then
+					if init = '0' then
 						state := IDLE;
 					else
 						state := FILLRAM2;
@@ -188,7 +188,7 @@ begin
 		
 		end if;
 
-		ACK_O <= ack and STB_I;
+		ACK_O <= ack and STB_I and (not init);
 		
 		
 	end process;
