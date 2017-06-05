@@ -27,17 +27,18 @@ end sram_external;
 architecture Behavioral of sram_external is
 begin
 
-	process(I_we)
+	process(I_we, I_data, IO_external_data)
 	begin
 		if I_we = '1' then
 			IO_external_data <= I_data;
+			O_data <= I_data;
 		else
 			IO_external_data <= (others => 'Z');
+			O_data <= IO_external_data;
 		end if;
 	end process;
 	
-	-- pass through data and addr
-	O_data <= IO_external_data;
+	-- pass through address
 	O_external_addr <= I_addr;
 	
 	-- control signals for external SRAM are active low
