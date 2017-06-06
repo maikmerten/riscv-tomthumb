@@ -37,7 +37,7 @@ begin
 		I_addr => ADR_I,
 		I_data => DAT_I,
 		I_en => STB_I,
-		I_we => WE_I,
+		I_we => (WE_I and STB_I),
 		O_data => DAT_O,
 		
 		IO_external_data => IO_sram_dat,
