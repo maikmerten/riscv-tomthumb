@@ -30,7 +30,6 @@ end sram_external_wb8;
 
 
 architecture Behavioral of sram_external_wb8 is
-
 begin
 
 	sram_external_instance: entity work.sram_external port map(
@@ -46,12 +45,19 @@ begin
 		O_external_oe => O_sram_oe,
 		O_external_we => O_sram_we
 	);
-
-
-	process(STB_I)
+	
+	process(CLK_I, STB_I)
+		variable ack: std_logic := '0';
 	begin
-
-		ACK_O <= STB_I;
+		if rising_edge(CLK_I) then
+			ack := '0';
+			if STB_I = '1' then
+				ack := '1';
+			end if;
+		end if;
+		
+		ACK_O <= ack and STB_I;
 		
 	end process;
+
 end Behavioral;
