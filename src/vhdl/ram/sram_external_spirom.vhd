@@ -87,12 +87,10 @@ begin
 			
 			sram_en <= '0';
 			sram_we <= '0';
-					
 			
 			if RST_I = '1' then
 				state := RESET;
 			end if;
-			
 		
 			case state is
 			
@@ -109,7 +107,7 @@ begin
 				
 				when FILLRAM2 =>
 					O_spi_sel <= '1'; -- deselect device
-					
+
 					sram_addr <= (others => '0');
 					sram_addr(initaddr'left downto 0) <= initaddr;
 					sram_datin <= rx_data;
@@ -132,28 +130,14 @@ begin
 
 					sram_addr <= ADR_I(sram_addr'left downto 0);
 					sram_datin <= DAT_I;					
-					--DAT_O <= sram_datout;
+
+					if STB_I = '1' then
+						sram_en <= '1';
+						sram_we <= WE_I;
+						ack := '1';
+					end if;
+				
 			
-					--if ADR_I(24) = '0' then
-						---------------
-						-- access RAM
-						---------------
-						if STB_I = '1' then
-							sram_en <= '1';
-							sram_we <= WE_I;
-							ack := '1';
-						end if;
-				
---					else
---						--------------
---						-- access ROM
---						--------------
---						if not spi_busy and STB_I = '1' then
---							addr := ADR_I(23 downto 0);
---							state := READ1;
---						end if;
---					end if;
-				
 				when READ1 =>
 					-- start reading SPI ROM by submitting the READ opcode
 					tx_data <= X"03";
@@ -185,18 +169,8 @@ begin
 					retstate := READ6;
 					
 				when READ6 =>
-					-- output read data and ACK
-					ack := '1';
-					DAT_O <= rx_data;
-					state := READ7;
+					state := FILLRAM2;
 					
-				when READ7 =>
-					if init = '0' then
-						state := IDLE;
-					else
-						state := FILLRAM2;
-					end if;
-				
 				when TX1 =>
 					-- signal beginning of transmission
 					tx_start <= true;
@@ -212,10 +186,13 @@ begin
 						state := retstate;
 					end if;
 					
+				when others => null;
+					
 			
 			end case;
 		
 		end if;
+		
 
 		ACK_O <= ack and STB_I and (not init);
 		DAT_O <= sram_datout;
