@@ -9,6 +9,9 @@ use work.vga_text_init.all;
 use work.vga_color_init.all;
 
 entity vga_wb8 is
+	generic(
+		EN_COLOR: boolean := true
+	);
 	Port(
 		-- naming according to Wishbone B4 spec
 		ADR_I: in std_logic_vector(31 downto 0);
@@ -68,10 +71,14 @@ begin
 						end if;
 					
 					when "01" =>
-						if WE_I = '1' then
-							ram_color(addr) <= DAT_I;
+						if EN_COLOR then
+							if WE_I = '1' then
+								ram_color(addr) <= DAT_I;
+							else
+								DAT_O <= ram_color(addr);
+							end if;
 						else
-							DAT_O <= ram_color(addr);
+							null;
 						end if;
 					
 					when others =>
@@ -161,7 +168,11 @@ begin
 			-- fetch char from text RAM and color from color RAM
 			text_color_addr := text_offset + text_col;
 			text_char <= ram_text(text_color_addr);
-			color_next <= ram_color(text_color_addr);
+			if EN_COLOR then
+				color_next <= ram_color(text_color_addr);
+			else
+				color_next <= X"0F";
+			end if;
 			color <= color_next; -- delay color for one clock
 	
 			---------------------------------------------
