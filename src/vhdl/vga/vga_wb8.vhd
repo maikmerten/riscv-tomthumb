@@ -171,7 +171,7 @@ begin
 			if EN_COLOR then
 				color_next <= ram_color(text_color_addr);
 			else
-				color_next <= X"0F";
+				color_next <= X"F0";
 			end if;
 			color <= color_next; -- delay color for one clock
 	
