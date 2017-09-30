@@ -18,16 +18,17 @@ entity control is
 		I_lt: in boolean := false;
 		I_ltu: in boolean := false;
 		I_eq: in boolean := false;
+		I_aludata: in std_logic_vector(XLEN-1 downto 0);
+		-- output for PC and MSRs
+		O_pc_msr: out std_logic_vector(XLEN-1 downto 0);
 		-- enable signals for components
 		O_aluen: out std_logic;
 		O_busen: out std_logic;
 		O_decen: out std_logic;
-		O_pcuen: out std_logic;
 		O_regen: out std_logic;
 		-- op selection for devices
 		O_aluop: out aluops_t;
 		O_busop: out busops_t;
-		O_pcuop: out pcuops_t;
 		O_regop: out regops_t;
 		-- muxer selection signals
 		O_mux_alu_dat1_sel: out integer range 0 to MUX_ALU_DAT1_PORTS-1;
@@ -39,6 +40,8 @@ end control;
 
 architecture Behavioral of control is
 	type states_t is (RESET, FETCH, DECODE, REGREAD, CUSTOM0, JAL, JAL2, JALR, JALR2, LUI, AUIPC, OP, OPIMM, STORE, STORE2, LOAD, LOAD2, BRANCH, BRANCH2, TRAP, TRAP2, REGWRITEBUS, REGWRITEALU, PCNEXT, PCREGIMM, PCIMM, PCUPDATE_FETCH);
+	
+	signal pc,ret_trap,ret_interrupt: std_logic_vector(XLEN-1 downto 0) := RESET_VECTOR(XLEN-1 downto 0);
 begin
 
 
@@ -55,20 +58,18 @@ begin
 			O_aluen <= '0';
 			O_busen <= '0';
 			O_decen <= '0';
-			O_pcuen <= '0';
 			O_regen <= '0';
-
-		
+	
 			O_aluop <= ALU_ADD;
 			O_busop <= BUS_READB;
-			O_pcuop <= PCU_SETPC;
 			O_regop <= REGOP_READ;
-			
 			
 			O_mux_alu_dat1_sel <= MUX_ALU_DAT1_PORT_S1;
 			O_mux_alu_dat2_sel <= MUX_ALU_DAT2_PORT_S2;
 			O_mux_bus_addr_sel <= MUX_BUS_ADDR_PORT_ALU; -- address by default from ALU
 			O_mux_reg_data_sel <= MUX_REG_DATA_PORT_ALU; -- data by default from ALU
+			
+			O_pc_msr <= pc; -- by default output PC
 			
 			-- only forward state machine if every component is finished
 			if not I_busy then
@@ -78,21 +79,27 @@ begin
 		
 			case state is
 				when RESET =>
+					pc <= RESET_VECTOR;
+					ret_interrupt <= RESET_VECTOR;
+					ret_trap <= RESET_VECTOR;
+					interrupt_enabled := false;
+					in_interrupt := false;
+					in_trap := false;
 					nextstate := FETCH;
 				
 				when FETCH =>
 					-- fetch next instruction, use the address the program counter unit (PCU) emits
 					O_busen <= '1';
 					O_busop <= BUS_READW;
-					O_mux_bus_addr_sel <= MUX_BUS_ADDR_PORT_PC;
+					O_mux_bus_addr_sel <= MUX_BUS_ADDR_PORT_CTRL;
 					nextstate := DECODE;
 			
 				when DECODE =>
 					-- why check for interrupt here? It turns out that changing PC during bus cycles is a *bad*
 					-- idea. In this state we're sure no bus cycles are in progress.
 					if I_interrupt = '1' and interrupt_enabled and not in_interrupt and not in_trap then
-						O_pcuen <= '1';
-						O_pcuop <= PCU_ENTERINT;
+						ret_interrupt <= pc;
+						pc <= INTERRUPT_VECTOR;
 						in_interrupt := true;
 						nextstate := FETCH;
 					else
@@ -212,7 +219,7 @@ begin
 					-- compute return address on ALU
 					O_aluen <= '1';
 					O_aluop <= ALU_ADD;
-					O_mux_alu_dat1_sel <= MUX_ALU_DAT1_PORT_PC;
+					O_mux_alu_dat1_sel <= MUX_ALU_DAT1_PORT_CTRL;
 					O_mux_alu_dat2_sel <= MUX_ALU_DAT2_PORT_INSTLEN;
 					nextstate := JAL2;
 				
@@ -227,7 +234,7 @@ begin
 					-- compute return address on ALU
 					O_aluen <= '1';
 					O_aluop <= ALU_ADD;
-					O_mux_alu_dat1_sel <= MUX_ALU_DAT1_PORT_PC;
+					O_mux_alu_dat1_sel <= MUX_ALU_DAT1_PORT_CTRL;
 					O_mux_alu_dat2_sel <= MUX_ALU_DAT2_PORT_INSTLEN;
 					nextstate := JALR2;
 				
@@ -293,7 +300,7 @@ begin
 					-- compute PC + IMM on ALU
 					O_aluen <= '1';
 					O_aluop <= ALU_ADD;
-					O_mux_alu_dat1_sel <= MUX_ALU_DAT1_PORT_PC;
+					O_mux_alu_dat1_sel <= MUX_ALU_DAT1_PORT_CTRL;
 					O_mux_alu_dat2_sel <= MUX_ALU_DAT2_PORT_IMM;
 					nextstate := REGWRITEALU;
 					
@@ -302,8 +309,7 @@ begin
 					
 					case I_funct7 is
 						when "0000000" =>		-- return from interrupt
-							O_pcuen <= '1';
-							O_pcuop <= PCU_RETINT;
+							pc <= ret_interrupt;
 							in_interrupt := false;
 							nextstate := FETCH;
 						when "0000001" =>		-- enable interrupts
@@ -313,11 +319,13 @@ begin
 							interrupt_enabled := false;
 							nextstate := PCNEXT;
 						when "0001000" =>		-- return from trap
-							O_pcuen <= '1';
-							O_pcuop <= PCU_RETTRAP;
+							pc <= ret_trap;
 							in_trap := false;
 							nextstate := FETCH;
 						when "0001001" =>		-- get trap return address
+							-- output trap return address...
+							O_pc_msr <= ret_trap;
+							-- ... and write it into register
 							O_regen <= '1';
 							O_regop <= REGOP_WRITE;
 							O_mux_reg_data_sel <= MUX_REG_DATA_PORT_TRAPRET;
@@ -331,15 +339,15 @@ begin
 					-- compute trap return address
 					O_aluen <= '1';
 					O_aluop <= ALU_ADD;
-					O_mux_alu_dat1_sel <= MUX_ALU_DAT1_PORT_PC;
+					O_mux_alu_dat1_sel <= MUX_ALU_DAT1_PORT_CTRL;
 					O_mux_alu_dat2_sel <= MUX_ALU_DAT2_PORT_INSTLEN;
 					in_trap := true;
 					nextstate := TRAP2;
 					
 				when TRAP2 =>
 					-- save trap return address and emit trap vector
-					O_pcuen <= '1';
-					O_pcuop <= PCU_ENTERTRAP;
+					ret_trap <= I_aludata;
+					pc <= TRAP_VECTOR;
 					nextstate := FETCH;
 				
 			
@@ -359,7 +367,7 @@ begin
 					-- compute new value for PC: PC + INST_LEN
 					O_aluen <= '1';
 					O_aluop <= ALU_ADD;
-					O_mux_alu_dat1_sel <= MUX_ALU_DAT1_PORT_PC;
+					O_mux_alu_dat1_sel <= MUX_ALU_DAT1_PORT_CTRL;
 					O_mux_alu_dat2_sel <= MUX_ALU_DAT2_PORT_INSTLEN;
 					nextstate := PCUPDATE_FETCH;
 				
@@ -375,14 +383,13 @@ begin
 					-- compute new value for PC: PC + IMM;
 					O_aluen <= '1';
 					O_aluop <= ALU_ADD;
-					O_mux_alu_dat1_sel <= MUX_ALU_DAT1_PORT_PC;
+					O_mux_alu_dat1_sel <= MUX_ALU_DAT1_PORT_CTRL;
 					O_mux_alu_dat2_sel <= MUX_ALU_DAT2_PORT_IMM;
 					nextstate := PCUPDATE_FETCH;
 				
 				when PCUPDATE_FETCH =>
-					-- load new PC value into program counter unit
-					O_pcuen <= '1';
-					O_pcuop <= PCU_SETPC;
+					-- load new PC value into program counter
+					pc <= I_aludata;
 					
 					-- given that right now the ALU outputs the address for the next
 					-- instruction, we can also start instruction fetch
@@ -397,9 +404,6 @@ begin
 			if I_reset = '1' then
 				state := RESET;
 				nextstate := RESET;
-				interrupt_enabled := false;
-				in_interrupt := false;
-				in_trap := false;
 			end if;
 		
 		end if;

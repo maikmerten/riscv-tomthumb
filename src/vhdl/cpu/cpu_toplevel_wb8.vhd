@@ -33,14 +33,13 @@ architecture Behavioral of cpu_toplevel_wb8 is
 	signal alu_ltu: boolean := false;
 	signal alu_eq: boolean := false;
 	
-	signal ctrl_pcuen: std_logic := '0';
 	signal ctrl_decen: std_logic := '0';
 	signal ctrl_aluen: std_logic := '0';
 	signal ctrl_busen: std_logic := '0';
 	signal ctrl_regen: std_logic := '0';
+	signal ctrl_pc_msr: std_logic_vector(XLEN-1 downto 0);
 	signal ctrl_aluop: aluops_t;
 	signal ctrl_busop: busops_t;
-	signal ctrl_pcuop: pcuops_t;
 	signal ctrl_regop: regops_t;
 	signal ctrl_mux_alu_dat1_sel: integer range 0 to MUX_ALU_DAT1_PORTS-1;
 	signal ctrl_mux_alu_dat2_sel: integer range 0 to MUX_ALU_DAT2_PORTS-1;
@@ -74,9 +73,6 @@ architecture Behavioral of cpu_toplevel_wb8 is
 	signal mux_reg_data_sel: integer range 0 to MUX_REG_DATA_PORTS-1;
 	signal mux_reg_data_output: std_logic_vector(XLEN-1 downto 0);
 	
-	signal pcu_out: std_logic_vector(XLEN-1 downto 0);
-	signal pcu_trapret: std_logic_vector(XLEN-1 downto 0);
-	
 	signal reg_dataS1: std_logic_vector(XLEN-1 downto 0);	
 	signal reg_dataS2: std_logic_vector(XLEN-1 downto 0);
 	
@@ -85,19 +81,19 @@ architecture Behavioral of cpu_toplevel_wb8 is
 begin
 	
 	mux_alu_dat1_input(MUX_ALU_DAT1_PORT_S1) <= reg_dataS1;
-	mux_alu_dat1_input(MUX_ALU_DAT1_PORT_PC) <= pcu_out;
+	mux_alu_dat1_input(MUX_ALU_DAT1_PORT_CTRL) <= ctrl_pc_msr;
 	
 	mux_alu_dat2_input(MUX_ALU_DAT2_PORT_S2) <= reg_dataS2;
 	mux_alu_dat2_input(MUX_ALU_DAT2_PORT_IMM) <= dec_imm;
 	mux_alu_dat2_input(MUX_ALU_DAT2_PORT_INSTLEN) <= X"00000004";
 	
 	mux_bus_addr_input(MUX_BUS_ADDR_PORT_ALU) <= alu_out;
-	mux_bus_addr_input(MUX_BUS_ADDR_PORT_PC) <= pcu_out;
+	mux_bus_addr_input(MUX_BUS_ADDR_PORT_CTRL) <= ctrl_pc_msr;
 	
 	mux_reg_data_input(MUX_REG_DATA_PORT_ALU) <= alu_out;
 	mux_reg_data_input(MUX_REG_DATA_PORT_BUS) <= bus_data;
 	mux_reg_data_input(MUX_REG_DATA_PORT_IMM) <= dec_imm;
-	mux_reg_data_input(MUX_REG_DATA_PORT_TRAPRET) <= pcu_trapret;
+	mux_reg_data_input(MUX_REG_DATA_PORT_TRAPRET) <= ctrl_pc_msr;
 
 
 	alu_instance: entity work.alu port map(
@@ -146,15 +142,14 @@ begin
 		I_lt => alu_lt,
 		I_ltu => alu_ltu,
 		I_eq => alu_eq,
+		I_aludata => alu_out,
 		O_decen => ctrl_decen,
 		O_aluen => ctrl_aluen,
 		O_busen => ctrl_busen,
-		O_pcuen => ctrl_pcuen,
 		O_regen => ctrl_regen,
 		O_aluop => ctrl_aluop,
 		O_busop => ctrl_busop,
 		O_regop => ctrl_regop,
-		O_pcuop => ctrl_pcuop,
 		O_mux_alu_dat1_sel => ctrl_mux_alu_dat1_sel,
 		O_mux_alu_dat2_sel => ctrl_mux_alu_dat2_sel,
 		O_mux_bus_addr_sel => ctrl_mux_bus_addr_sel,
@@ -212,16 +207,6 @@ begin
 		I_inputs => mux_reg_data_input,
 		I_sel => ctrl_mux_reg_data_sel,
 		O_output => mux_reg_data_output
-	);
-	
-	pcu_instance: entity work.pcu port map(
-		I_clk => CLK_I,
-		I_en => ctrl_pcuen,
-		I_reset => RST_I,
-		I_op => ctrl_pcuop,
-		I_data => alu_out,
-		O_data => pcu_out,
-		O_trapret => pcu_trapret
 	);
 	
 	

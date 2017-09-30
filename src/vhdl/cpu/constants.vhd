@@ -114,7 +114,7 @@ constant R31:	std_logic_vector(4 downto 0) := "11111";
 
 constant MUX_BUS_ADDR_PORTS: integer := 2;
 constant MUX_BUS_ADDR_PORT_ALU: integer := 0;
-constant MUX_BUS_ADDR_PORT_PC: integer := 1;
+constant MUX_BUS_ADDR_PORT_CTRL: integer := 1;
 
 constant MUX_REG_DATA_PORTS: integer := 4;
 constant MUX_REG_DATA_PORT_ALU: integer := 0;
@@ -124,7 +124,7 @@ constant MUX_REG_DATA_PORT_TRAPRET: integer := 3;
 
 constant MUX_ALU_DAT1_PORTS: integer := 2;
 constant MUX_ALU_DAT1_PORT_S1: integer := 0;
-constant MUX_ALU_DAT1_PORT_PC: integer := 1;
+constant MUX_ALU_DAT1_PORT_CTRL: integer := 1;
 
 constant MUX_ALU_DAT2_PORTS: integer := 3;
 constant MUX_ALU_DAT2_PORT_S2: integer := 0;
@@ -138,14 +138,9 @@ attribute enum_encoding : string;
 type aluops_t is (ALU_ADD, ALU_SUB, ALU_AND, ALU_OR, ALU_XOR, ALU_SLT, ALU_SLTU, ALU_SLL, ALU_SRL, ALU_SRA);
 --attribute enum_encoding of aluops_t : type is "sequential";
 
-
 -- commands for bus unit
 type busops_t is (BUS_READB, BUS_READBU, BUS_READH, BUS_READHU, BUS_READW, BUS_WRITEB, BUS_WRITEH, BUS_WRITEW);
 attribute enum_encoding of busops_t : type is "one-hot";
-
--- commands for program counter unit (PCU)
-type pcuops_t is (PCU_SETPC, PCU_ENTERTRAP, PCU_RETTRAP, PCU_ENTERINT, PCU_RETINT);
-attribute enum_encoding of pcuops_t : type is "one-hot";
 
 -- commands for register unit
 type regops_t is (REGOP_READ, REGOP_WRITE);
