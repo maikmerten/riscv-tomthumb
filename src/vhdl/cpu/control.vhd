@@ -82,8 +82,10 @@ begin
 			case state is
 				when RESET =>
 					pc := RESET_VECTOR;
-					ret_interrupt := RESET_VECTOR;
-					ret_trap := RESET_VECTOR;
+					-- there's no real use to reset the return addresses - they carry no meaning when
+					-- not being in an interrupt or trap anyways
+					--ret_interrupt := RESET_VECTOR;
+					--ret_trap := RESET_VECTOR;
 					interrupt_enabled := false;
 					in_interrupt := false;
 					in_trap := false;
