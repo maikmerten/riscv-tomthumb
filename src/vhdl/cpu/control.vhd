@@ -40,8 +40,8 @@ end control;
 
 architecture Behavioral of control is
 	type states_t is (RESET, FETCH, DECODE, REGREAD, CUSTOM0, JAL, JAL2, JALR, JALR2, LUI, AUIPC, OP, OPIMM, STORE, STORE2, LOAD, LOAD2, BRANCH, BRANCH2, TRAP, TRAP2, REGWRITEBUS, REGWRITEALU, PCNEXT, PCREGIMM, PCIMM, PCUPDATE_FETCH);
+	type pc_msr_output_t is (PROGRAMCOUNTER, TRAPRET);
 	
-	signal pc,ret_trap,ret_interrupt: std_logic_vector(XLEN-1 downto 0) := RESET_VECTOR(XLEN-1 downto 0);
 begin
 
 
@@ -49,6 +49,8 @@ begin
 	process(I_clk, I_en, I_reset, I_busy, I_interrupt, I_opcode, I_funct3, I_funct7, I_lt, I_ltu, I_eq)
 		variable nextstate,state: states_t := RESET;
 		variable interrupt_enabled, in_interrupt, in_trap: boolean := false;
+		variable pc,ret_trap,ret_interrupt: std_logic_vector(XLEN-1 downto 0) := RESET_VECTOR(XLEN-1 downto 0);
+		variable pc_msr_output: pc_msr_output_t := PROGRAMCOUNTER;
 	begin
 	
 		-- run on falling edge to ensure that all control signals arrive in time
@@ -69,7 +71,7 @@ begin
 			O_mux_bus_addr_sel <= MUX_BUS_ADDR_PORT_ALU; -- address by default from ALU
 			O_mux_reg_data_sel <= MUX_REG_DATA_PORT_ALU; -- data by default from ALU
 			
-			O_pc_msr <= pc; -- by default output PC
+			pc_msr_output := PROGRAMCOUNTER; -- by default output PC
 			
 			-- only forward state machine if every component is finished
 			if not I_busy then
@@ -79,9 +81,9 @@ begin
 		
 			case state is
 				when RESET =>
-					pc <= RESET_VECTOR;
-					ret_interrupt <= RESET_VECTOR;
-					ret_trap <= RESET_VECTOR;
+					pc := RESET_VECTOR;
+					ret_interrupt := RESET_VECTOR;
+					ret_trap := RESET_VECTOR;
 					interrupt_enabled := false;
 					in_interrupt := false;
 					in_trap := false;
@@ -98,8 +100,8 @@ begin
 					-- why check for interrupt here? It turns out that changing PC during bus cycles is a *bad*
 					-- idea. In this state we're sure no bus cycles are in progress.
 					if I_interrupt = '1' and interrupt_enabled and not in_interrupt and not in_trap then
-						ret_interrupt <= pc;
-						pc <= INTERRUPT_VECTOR;
+						ret_interrupt := pc;
+						pc := INTERRUPT_VECTOR;
 						in_interrupt := true;
 						nextstate := FETCH;
 					else
@@ -309,7 +311,7 @@ begin
 					
 					case I_funct7 is
 						when "0000000" =>		-- return from interrupt
-							pc <= ret_interrupt;
+							pc := ret_interrupt;
 							in_interrupt := false;
 							nextstate := FETCH;
 						when "0000001" =>		-- enable interrupts
@@ -319,12 +321,12 @@ begin
 							interrupt_enabled := false;
 							nextstate := PCNEXT;
 						when "0001000" =>		-- return from trap
-							pc <= ret_trap;
+							pc := ret_trap;
 							in_trap := false;
 							nextstate := FETCH;
 						when "0001001" =>		-- get trap return address
 							-- output trap return address...
-							O_pc_msr <= ret_trap;
+							pc_msr_output := TRAPRET;
 							-- ... and write it into register
 							O_regen <= '1';
 							O_regop <= REGOP_WRITE;
@@ -346,8 +348,8 @@ begin
 					
 				when TRAP2 =>
 					-- save trap return address and emit trap vector
-					ret_trap <= I_aludata;
-					pc <= TRAP_VECTOR;
+					ret_trap := I_aludata;
+					pc := TRAP_VECTOR;
 					nextstate := FETCH;
 				
 			
@@ -389,7 +391,7 @@ begin
 				
 				when PCUPDATE_FETCH =>
 					-- load new PC value into program counter
-					pc <= I_aludata;
+					pc := I_aludata;
 					
 					-- given that right now the ALU outputs the address for the next
 					-- instruction, we can also start instruction fetch
@@ -398,6 +400,13 @@ begin
 					O_mux_bus_addr_sel <= MUX_BUS_ADDR_PORT_ALU;
 					nextstate := DECODE;
 					
+			end case;
+			
+			case pc_msr_output is
+				when PROGRAMCOUNTER =>
+					O_pc_msr <= pc;
+				when TRAPRET =>
+					O_pc_msr <= ret_trap;
 			end case;
 		
 		
