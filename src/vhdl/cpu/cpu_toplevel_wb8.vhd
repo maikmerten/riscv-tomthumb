@@ -143,6 +143,7 @@ begin
 		I_ltu => alu_ltu,
 		I_eq => alu_eq,
 		I_aludata => alu_out,
+		O_pc_msr => ctrl_pc_msr,
 		O_decen => ctrl_decen,
 		O_aluen => ctrl_aluen,
 		O_busen => ctrl_busen,
