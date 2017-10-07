@@ -28,6 +28,7 @@ architecture Behavioral of alu is
 	signal sum,myxor,myand,myor: std_logic_vector(XLEN-1 downto 0);
 	signal sub: std_logic_vector(XLEN downto 0); -- one additional bit to detect underflow
 	signal lt,ltu,eq: boolean;
+	signal busy: std_logic := '0';
 begin
 
 	-- combinatorial logic for basic operations
@@ -53,16 +54,14 @@ begin
 
 
 	process(I_clk, I_en, I_dataS1, I_dataS2, I_reset, I_aluop, sum, sub, ltu, myxor, myor, myand, lt, eq)
-		variable busy: boolean := false;
 		variable shiftcnt: std_logic_vector(4 downto 0);
 	begin
-	
 	
 		if rising_edge(I_clk) then
 
 			-- check for reset
 			if(I_reset = '1') then
-				busy := false;
+				busy <= '0';
 			elsif I_en = '1' then
 			
 				-------------------------------
@@ -99,8 +98,8 @@ begin
 						end if;
 				
 					when ALU_SLL | ALU_SRL | ALU_SRA =>
-						if not busy then
-							busy := true;
+						if busy = '0' then
+							busy <= '1';
 							result <= op1;
 							shiftcnt := op2(4 downto 0);
 						elsif shiftcnt /= "00000" then
@@ -111,7 +110,7 @@ begin
 							end case;
 							shiftcnt := std_logic_vector(unsigned(shiftcnt) - 1);
 						else
-							busy := false;
+							busy <= '0';
 						end if;
 		
 				end case;
@@ -120,21 +119,16 @@ begin
 				O_ltu <= ltu;
 				O_eq <= eq;
 		
-				if busy then
-					O_busy <= '1';
-				else
-					O_busy <= '0';
-				end if;
-				
 		
 			end if;
 		end if;
 	end process;
 	
 	
-	process(result)
+	process(result, busy)
 	begin
 		O_data <= result;
+		O_busy <= busy;
 	end process;
 	
 
