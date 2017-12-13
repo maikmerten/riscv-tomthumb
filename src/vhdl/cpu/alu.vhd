@@ -1,12 +1,12 @@
-library IEEE;
-use IEEE.std_logic_1164.ALL;
-use IEEE.NUMERIC_STD.ALL;
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
 
 library work;
 use work.constants.all;
 
 entity alu is
-	Port(
+	port(
 		I_clk: in std_logic;
 		I_en: in std_logic;
 		I_dataS1: in std_logic_vector(XLEN-1 downto 0);
@@ -25,39 +25,48 @@ architecture Behavioral of alu is
 	alias op1 is I_dataS1(XLEN-1 downto 0);
 	alias op2 is I_dataS2(XLEN-1 downto 0);
 	signal result: std_logic_vector(XLEN-1 downto 0) := XLEN_ZERO;
+	signal sum,myxor,myand,myor: std_logic_vector(XLEN-1 downto 0);
+	signal sub: std_logic_vector(XLEN downto 0); -- one additional bit to detect underflow
+	signal lt,ltu,eq: boolean;
+	signal busy: std_logic := '0';
 begin
-	process(I_clk, I_en, I_dataS1, I_dataS2, I_reset, I_aluop)
-		variable sum,eor: std_logic_vector(XLEN-1 downto 0);
-		variable sub: std_logic_vector(XLEN downto 0); -- one additional bit to detect underflow
-		variable shiftcnt: std_logic_vector(4 downto 0);
-		variable busy,lt,ltu: boolean := false;
+
+	-- combinatorial logic for basic operations
+	process(op1, op2)
 	begin
+		sum <= std_logic_vector(unsigned(op1) + unsigned(op2));
+		sub <= std_logic_vector(unsigned('0' & op1) - unsigned('0' & op2));
+		
+		myxor <= op1 xor op2;
+		myor <= op1 or op2;
+		myand <= op1 and op2;
+	end process;
 	
+	-- determine flag values
+	process(sub, myxor)
+	begin
+		-- unsigned comparision: simply look at underflow bit
+		ltu <= sub(XLEN) = '1';
+		-- signed comparison: xor underflow bit with xored sign bits
+		lt <= (sub(XLEN) xor myxor(XLEN-1)) = '1';
+		eq <= sub = ('0' & XLEN_ZERO);
+	end process;
+
+
+	process(I_clk, I_en, I_dataS1, I_dataS2, I_reset, I_aluop, sum, sub, ltu, myxor, myor, myand, lt, eq)
+		variable shiftcnt: std_logic_vector(4 downto 0);
+	begin
 	
 		if rising_edge(I_clk) then
 
 			-- check for reset
 			if(I_reset = '1') then
-				busy := false;
+				busy <= '0';
 			elsif I_en = '1' then
 			
 				-------------------------------
 				-- ALU core operations
 				-------------------------------
-
-				sum := std_logic_vector(unsigned(op1) + unsigned(op2));
-				sub := std_logic_vector(unsigned('0' & op1) - unsigned('0' & op2));
-				
-				-- unsigned comparision: simply look at underflow bit
-				ltu := sub(XLEN) = '1';
-				
-				-- signed comparison: xor underflow bit with xored sign bits
-				eor := op1 xor op2;
-				lt := (sub(XLEN) xor eor(XLEN-1)) = '1';
-				
-				O_lt <= lt;
-				O_ltu <= ltu;
-				O_eq <= sub = ('0' & XLEN_ZERO);
 				
 				case I_aluop is
 		
@@ -68,13 +77,13 @@ begin
 						result <= sub(XLEN-1 downto 0);
 					
 					when ALU_AND =>
-						result <= op1 and op2;
+						result <= myand;
 				
 					when ALU_OR =>
-						result <= op1 or op2;
+						result <= myor;
 					
 					when ALU_XOR =>
-						result <= eor;
+						result <= myxor;
 				
 					when ALU_SLT =>
 						result <= XLEN_ZERO;
@@ -89,8 +98,8 @@ begin
 						end if;
 				
 					when ALU_SLL | ALU_SRL | ALU_SRA =>
-						if not busy then
-							busy := true;
+						if busy = '0' then
+							busy <= '1';
 							result <= op1;
 							shiftcnt := op2(4 downto 0);
 						elsif shiftcnt /= "00000" then
@@ -101,27 +110,25 @@ begin
 							end case;
 							shiftcnt := std_logic_vector(unsigned(shiftcnt) - 1);
 						else
-							busy := false;
+							busy <= '0';
 						end if;
 		
 				end case;
-			
-		
-				if busy then
-					O_busy <= '1';
-				else
-					O_busy <= '0';
-				end if;
 				
+				O_lt <= lt;
+				O_ltu <= ltu;
+				O_eq <= eq;
+		
 		
 			end if;
 		end if;
 	end process;
 	
 	
-	process(result)
+	process(result, busy)
 	begin
 		O_data <= result;
+		O_busy <= busy;
 	end process;
 	
 
