@@ -1,5 +1,7 @@
 # Tom Thumb RISC-V CPU core and demo system
 
+**WARNING: I stopped working on this project and basically developed something very similar in Verilog, which IMO has better open-source tools available. The result is SPU32, which can be found over at https://github.com/maikmerten/spu32 and applies some lessons learned from Tom Thumb.**
+
 
 This repository contains the VHDL sources for a simple CPU design which executes RV32I RISC-V instructions (http://riscv.org/) and some peripherals for testing. Also included are project files for the Terasic DE0-Nano board (containing an Altera Cyclone IV FPGA) and some programs (mostly assembler) to test the design.
 
